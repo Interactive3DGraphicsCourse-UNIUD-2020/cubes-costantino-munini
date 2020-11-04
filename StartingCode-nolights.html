@@ -41,9 +41,15 @@
 			
 			var geometry = new THREE.BoxGeometry(1,1,1);
 			var material = new THREE.MeshBasicMaterial( { color: 0xaaaaaa } );
-			var cube = new THREE.Mesh( geometry, material );
 			
-			scene.add( cube );
+
+      for (i=0; i < 3; i++) {
+			  var cube = new THREE.Mesh( geometry, material );
+        cube.name = "cube_" + i;
+        cube.position.x = i;
+			  scene.add( cube );
+      }
+      console.log(scene.children);
 			
 			stats = new Stats();
 			stats.domElement.style.position = 'absolute';
