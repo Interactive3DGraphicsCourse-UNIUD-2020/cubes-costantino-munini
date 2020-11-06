@@ -116,7 +116,8 @@
       texture.minFilter = THREE.NearestFilter;
 
 
-      const cellSize = 32;
+      //const cellSize = 32;
+      const cellSize = 5;
 
       const tileSize = 16;
       const tileTextureWidth = 256;
@@ -130,22 +131,27 @@
       });
 
 
-      // Shadow Test
-      world.setVoxel(0, 0, 0, randInt(1,17));
-      world.setVoxel(0, 1, 1, randInt(1,17));
+      // // Shadow Test
+      // world.setVoxel(0, 0, 0, randInt(1,17));
+      // world.setVoxel(0, 1, 1, randInt(1,17));
 
+      // // Common Face Test
+      // // (use wireframe)
+      // world.setVoxel(5, 0, 0, randInt(1,17));
+      // world.setVoxel(5, 0, 1, randInt(1,17)); // shadow problem?
 
-      // Common Face Test
-      // (use wireframe)
-      world.setVoxel(5, 0, 0, randInt(1,17));
-      world.setVoxel(5, 0, 1, randInt(1,17)); // shadow problem?
+      let cubeDim = 5;
+      for (let y = 0; y < cubeDim; ++y) {
+        for (let z = 0; z < cubeDim; ++z) {
+          for (let x = 0; x < cubeDim; ++x) {
+              world.setVoxel(x, y, z, 7);
+              //world.setVoxel(x, y, z, randInt(1, 17));
+              //world.setVoxel(x + cellSize + 3, y, z, randInt(1, 17));
+          }
+        }
+      }
 
-
-      //for (let y = 0; y < 2; y++) {
-      //  for (let x = 0; x < 4*2; x++) {
-      //      world.setVoxel(x, y, 0, 1);
-      //  }
-      //}
+      world.setVoxel(2, 5, 2, 10); // TODO fix cells or use bigger cellSize
 
       const {positions, normals, uvs, indices} = world.generateGeometryDataForCell(0, 0, 0);
       const geometry = new THREE.BufferGeometry();
@@ -158,6 +164,7 @@
         transparent: true,
         //color: 'green',
         //wireframe: true,
+
       });
 
       const positionNumComponents = 3;
@@ -173,8 +180,9 @@
           'uv',
           new THREE.BufferAttribute(new Float32Array(uvs), uvNumComponents));
       geometry.setIndex(indices);
-      const mesh = new THREE.Mesh(geometry, material);
+      var mesh = new THREE.Mesh(geometry, material);
 
+      // TODO fix shadows
 			//mesh.castShadow = true;
 			//mesh.receiveShadow = true;
 
@@ -197,7 +205,15 @@
         const {cellSize} = this; // why needed?
 
         this.cellSliceSize = cellSize * cellSize;
-        this.cell = new Uint8Array(cellSize * cellSize * cellSize);
+        this.cells = {};
+      }
+
+      computeCellId(x, y, z) {
+        const {cellSize} = this;
+        const cellX = Math.floor(x / cellSize);
+        const cellY = Math.floor(y / cellSize);
+        const cellZ = Math.floor(z / cellSize);
+        return `${cellX},${cellY},${cellZ}`; // create string
       }
 
       computeVoxelOffset(x, y, z) {
@@ -211,20 +227,24 @@
       }
 
       getCellForVoxel(x, y, z) {
-        const {cellSize} = this;
-        const cellX = Math.floor(x / cellSize);
-        const cellY = Math.floor(y / cellSize);
-        const cellZ = Math.floor(z / cellSize);
-        if (cellX !== 0 || cellY !== 0 || cellZ !== 0) {
-          return null;
+        return this.cells[this.computeCellId(x, y, z)];
+      }
+
+      addCellForVoxel(x, y, z) {
+        const cellId = this.computeCellId(x, y, z);
+        let cell = this.cells[cellId];
+        if (!cell) {
+          const {cellSize} = this;
+          cell = new Uint8Array(cellSize * cellSize * cellSize);
+          this.cells[cellId] = cell;
         }
-        return this.cell;
+        return cell;
       }
 
       setVoxel(x, y, z, v) {
-        const cell = this.getCellForVoxel(x, y, z);
+        let cell = this.getCellForVoxel(x, y, z);
         if (!cell) {
-          return;  // TODO: add a new cell?
+          cell = this.addCellForVoxel(x, y, z);
         }
         const voxelOffset = this.computeVoxelOffset(x, y, z);
         cell[voxelOffset] = v;

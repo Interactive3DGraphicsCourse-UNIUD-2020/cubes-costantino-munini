@@ -64,7 +64,15 @@
 				cube.position.y = 1;
 				cube.position.z = 1;
 				cube.receiveShadow = true;
-			
+				scene.add( cube );
+			}));
+
+			loader.load('textures/11635.jpg', (texture => {
+				var material = new THREE.MeshPhongMaterial( { map: texture } );
+				var cube = new THREE.Mesh( geometry, material );
+				cube.castShadow = true; // why seems not working???? TODO
+				cube.position.x = 10;
+				cube.receiveShadow = true;
 				scene.add( cube );
 			}));
 			
