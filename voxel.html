@@ -26,6 +26,7 @@
 		<script>
 		
 		var scene, camera, renderer, controls, stats;
+    var world;
 		
 		function Start() {
 			scene = new THREE.Scene();
@@ -41,7 +42,7 @@
 			document.body.appendChild( renderer.domElement );
 			
 			//camera.position.set(2,2,2);
-      var cpos = 200;
+      var cpos = 50;
       var cpos = 10;
 			camera.position.set(cpos, cpos, cpos);
 			camera.lookAt( new THREE.Vector3(0,0,0));
@@ -69,13 +70,13 @@
 			//}));
 			
 
-			hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
+			var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
 			hemiLight.color.setHSL( 0.6, 1, 0.6 );
 			hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
 			hemiLight.position.set( 0, 500, 0 );
 			scene.add( hemiLight );
       
-			dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
+			var dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
 			dirLight.color.setHSL( 0.1, 1, 0.95 );
 			dirLight.position.set( -1, 1.75, 1 );
 			dirLight.position.multiplyScalar( 50 );
@@ -89,7 +90,7 @@
 			var groundMat = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x050505 } );
 			groundMat.color.setHSL( 0.095, 1, 0.75 );
 			var ground = new THREE.Mesh( groundGeo, groundMat );
-			ground.position.y = -0.5;
+			//ground.position.y = -0.5;
 			ground.rotation.x = -Math.PI/2;
 			scene.add( ground );
 			ground.receiveShadow = true;
@@ -100,7 +101,7 @@
 			document.body.appendChild( stats.domElement );
 			
 			// uncomment if you need to draw coordinate axes when building the scene
-			//Coordinates.drawAllAxes();
+			Coordinates.drawAllAxes();
 			
 			controls = new THREE.OrbitControls( camera );
 			controls.addEventListener( 'change', Render );
@@ -108,121 +109,248 @@
       // From here inspired by
       // https://threejsfundamentals.org/threejs/lessons/threejs-voxel-geometry.html
 
-      //const cellSize = 256;
-      //const cellSize = 150;
-      const cellSize = 3;
+      // //const cellSize = 256;
+      // //const cellSize = 150;
+      // const cellSize = 3;
+      // const cell = new Uint8Array(cellSize * cellSize * cellSize);
+      // for (let y = 0; y < cellSize; ++y) {
+      //   for (let z = 0; z < cellSize; ++z) {
+      //     for (let x = 0; x < cellSize; ++x) {
+      //       const height = ( Math.sin(x / cellSize * Math.PI * 4) +
+      //                        Math.sin(z / cellSize * Math.PI * 6) ) *
+      //                        20 + cellSize / 2;
+      //       //if (height > y && height < y + 1) {
+      //       if (height < y + 1) {
+      //         const offset = y * cellSize * cellSize +
+      //                        z * cellSize +
+      //                        x;
+      //         cell[offset] = 1;
+      //       }
+      //     }
+      //   }
+      // }
+      // const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+      // //const material = new THREE.MeshPhongMaterial({color: 'green'});
+      // const material = new THREE.MeshPhongMaterial({color: 'green', wireframe: true});
+      // for (let y = 0; y < cellSize; ++y) {
+      //   for (let z = 0; z < cellSize; ++z) {
+      //     for (let x = 0; x < cellSize; ++x) {
+      //       const offset = y * cellSize * cellSize +
+      //                      z * cellSize +
+      //                      x;
+      //       const block = cell[offset];
+      //       if (block) {
+      //         const mesh = new THREE.Mesh(geometry, material);
+      //         mesh.position.set(x, y, z);
+      //         scene.add(mesh);
+      //       }
+      //     }
+      //   }
+      // }			
 
-      const cell = new Uint8Array(cellSize * cellSize * cellSize);
+      const cellSize = 32;
+       
+      world = new VoxelWorld(cellSize);
 
-      for (let y = 0; y < cellSize; ++y) {
-        for (let z = 0; z < cellSize; ++z) {
-          for (let x = 0; x < cellSize; ++x) {
-            const height = ( Math.sin(x / cellSize * Math.PI * 4) +
-                             Math.sin(z / cellSize * Math.PI * 6) ) *
-                             20 + cellSize / 2;
-            //if (height > y && height < y + 1) {
-            if (height < y + 1) {
-              const offset = y * cellSize * cellSize +
-                             z * cellSize +
-                             x;
-              cell[offset] = 1;
-            }
-          }
+      //world.setVoxel(0,0,0, 1);
+       
+      //for (let y = 0; y < cellSize; ++y) {
+      //  for (let z = 0; z < cellSize; ++z) {
+      //    for (let x = 0; x < cellSize; ++x) {
+      //      const height = ( Math.sin(x / cellSize * Math.PI * 2) +
+      //                       Math.sin(z / cellSize * Math.PI * 3)
+      //                       ) * (cellSize / 6) + (cellSize / 2);
+      //      if (y < height) {
+      //        world.setVoxel(x, y, z, 1);
+      //      }
+      //    }
+      //  }
+      //}
+
+      for (let y = 0; y < 2; y++) {
+        for (let x = 0; x < 4*2; x++) {
+          //if ((x+1) % 4 == 1) {
+            //console.log(x+1)
+            //console.log((x+1) % 4)
+            //console.log(x);
+            //console.log(y);
+            world.setVoxel(x, y, 0, 1);
+          //}
         }
       }
 
-      const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+      const {positions, normals, indices} = world.generateGeometryDataForCell(0, 0, 0);
+      const geometry = new THREE.BufferGeometry();
+
+      const material = new THREE.MeshLambertMaterial({color: 'green'});
       //const material = new THREE.MeshPhongMaterial({color: 'green'});
-      const material = new THREE.MeshPhongMaterial({color: 'green', wireframe: true});
+      //const material = new THREE.MeshPhongMaterial({color: 'green', wireframe: true});
 
-      for (let y = 0; y < cellSize; ++y) {
-        for (let z = 0; z < cellSize; ++z) {
-          for (let x = 0; x < cellSize; ++x) {
-            const offset = y * cellSize * cellSize +
-                           z * cellSize +
-                           x;
-            const block = cell[offset];
-            if (block) {
-              const mesh = new THREE.Mesh(geometry, material);
-              mesh.position.set(x, y, z);
-              scene.add(mesh);
-            }
-          }
-        }
-      }			
+      const positionNumComponents = 3;
+      const normalNumComponents = 3;
+      geometry.setAttribute(
+          'position',
+          new THREE.BufferAttribute(new Float32Array(positions), positionNumComponents));
+      geometry.setAttribute(
+          'normal',
+          new THREE.BufferAttribute(new Float32Array(normals), normalNumComponents));
+      geometry.setIndex(indices);
+      const mesh = new THREE.Mesh(geometry, material);
 
+			//mesh.castShadow = true;
+			//mesh.receiveShadow = true;
 
-
+      scene.add(mesh);
 		}
 
 
     class VoxelWorld {
       constructor(cellSize) {
         this.cellSize = cellSize;
+        this.cellSliceSize = cellSize * cellSize;
+        this.cell = new Uint8Array(cellSize * cellSize * cellSize);
       }
-
+      computeVoxelOffset(x, y, z) {
+        const {cellSize, cellSliceSize} = this;
+        const voxelX = THREE.Math.euclideanModulo(x, cellSize) | 0;
+        const voxelY = THREE.Math.euclideanModulo(y, cellSize) | 0;
+        const voxelZ = THREE.Math.euclideanModulo(z, cellSize) | 0;
+        return voxelY * cellSliceSize +
+               voxelZ * cellSize +
+               voxelX;
+      }
+      getCellForVoxel(x, y, z) {
+        const {cellSize} = this;
+        const cellX = Math.floor(x / cellSize);
+        const cellY = Math.floor(y / cellSize);
+        const cellZ = Math.floor(z / cellSize);
+        if (cellX !== 0 || cellY !== 0 || cellZ !== 0) {
+          return null;
+        }
+        return this.cell;
+      }
+      setVoxel(x, y, z, v) {
+        const cell = this.getCellForVoxel(x, y, z);
+        if (!cell) {
+          return;  // TODO: add a new cell?
+        }
+        const voxelOffset = this.computeVoxelOffset(x, y, z);
+        cell[voxelOffset] = v;
+      }
+      getVoxel(x, y, z) {
+        const cell = this.getCellForVoxel(x, y, z);
+        if (!cell) {
+          return 0;
+        }
+        const voxelOffset = this.computeVoxelOffset(x, y, z);
+        return cell[voxelOffset];
+      }
       generateGeometryDataForCell(cellX, cellY, cellZ) {
-        const {cellSize} = this; 
-
+        const {cellSize} = this;
+        const positions = [];
+        const normals = [];
+        const indices = [];
         const startX = cellX * cellSize;
         const startY = cellY * cellSize;
         const startZ = cellZ * cellSize;
 
-        const positions = [];
-        const normals   = [];
-        const indices   = [];
-
-        for (let y = 0; y<cellSize; ++y) {
+        for (let y = 0; y < cellSize; ++y) {
           const voxelY = startY + y;
-          for (let z = 0; z<cellSize; ++z) {
+          for (let z = 0; z < cellSize; ++z) {
             const voxelZ = startZ + z;
-            for (let x = 0; x<cellSize; ++x) {
+            for (let x = 0; x < cellSize; ++x) {
               const voxelX = startX + x;
               const voxel = this.getVoxel(voxelX, voxelY, voxelZ);
               if (voxel) {
+                // There is a voxel here but do we need faces for it?
                 for (const {dir, corners} of VoxelWorld.faces) {
-                  const neighbor = this.getVoxel( voxelX + dir[0], 
-                                                  voxelY + dir[1], 
-                                                  voxelZ + dir[2]);
+                  const neighbor = this.getVoxel(
+                      voxelX + dir[0],
+                      voxelY + dir[1],
+                      voxelZ + dir[2]);
                   if (!neighbor) {
-                    // face needed in this direction
-                    const ndx = positions.lenght / 3;
+                    // this voxel has no neighbor in this direction so we need a face.
+                    const ndx = positions.length / 3;
                     for (const pos of corners) {
-                      position.push(pos[0] + x, pos[1] + y, pos[2] + z);
+                      positions.push(pos[0] + x, pos[1] + y, pos[2] + z);
                       normals.push(...dir);
+                    }
+                    indices.push(
+                      ndx, ndx + 1, ndx + 2,
+                      ndx + 2, ndx + 1, ndx + 3,
+                    );
                   }
                 }
               }
             }
           }
         }
-      }
 
+        return {
+          positions,
+          normals,
+          indices,
+        };
+      }
     }
 
     VoxelWorld.faces = [
       { // left
         dir: [ -1,  0,  0, ],
+        corners: [
+          [ 0, 1, 0 ],
+          [ 0, 0, 0 ],
+          [ 0, 1, 1 ],
+          [ 0, 0, 1 ],
+        ],
       },
       { // right
         dir: [  1,  0,  0, ],
+        corners: [
+          [ 1, 1, 1 ],
+          [ 1, 0, 1 ],
+          [ 1, 1, 0 ],
+          [ 1, 0, 0 ],
+        ],
       },
       { // bottom
         dir: [  0, -1,  0, ],
+        corners: [
+          [ 1, 0, 1 ],
+          [ 0, 0, 1 ],
+          [ 1, 0, 0 ],
+          [ 0, 0, 0 ],
+        ],
       },
       { // top
         dir: [  0,  1,  0, ],
+        corners: [
+          [ 0, 1, 1 ],
+          [ 1, 1, 1 ],
+          [ 0, 1, 0 ],
+          [ 1, 1, 0 ],
+        ],
       },
       { // back
         dir: [  0,  0, -1, ],
+        corners: [
+          [ 1, 0, 0 ],
+          [ 0, 0, 0 ],
+          [ 1, 1, 0 ],
+          [ 0, 1, 0 ],
+        ],
       },
       { // front
         dir: [  0,  0,  1, ],
+        corners: [
+          [ 0, 0, 1 ],
+          [ 1, 0, 1 ],
+          [ 0, 1, 1 ],
+          [ 1, 1, 1 ],
+        ],
       },
     ];
 
-
-		
 		function Update() {
 			requestAnimationFrame( Update );
 			controls.update();  
