@@ -116,8 +116,8 @@
       texture.minFilter = THREE.NearestFilter;
 
 
-      //const cellSize = 32;
-      const cellSize = 5;
+      const cellSize = 32;
+      //const cellSize = 5;
 
       const tileSize = 16;
       const tileTextureWidth = 256;
@@ -140,18 +140,19 @@
       // world.setVoxel(5, 0, 0, randInt(1,17));
       // world.setVoxel(5, 0, 1, randInt(1,17)); // shadow problem?
 
-      let cubeDim = 5;
+      let cubeDim = 3;
       for (let y = 0; y < cubeDim; ++y) {
         for (let z = 0; z < cubeDim; ++z) {
           for (let x = 0; x < cubeDim; ++x) {
-              world.setVoxel(x, y, z, 7);
-              //world.setVoxel(x, y, z, randInt(1, 17));
+              //world.setVoxel(x, y, z, 7);
+              world.setVoxel(x, y, z, randInt(1, 17));
               //world.setVoxel(x + cellSize + 3, y, z, randInt(1, 17));
           }
         }
       }
 
       world.setVoxel(2, 5, 2, 10); // TODO fix cells or use bigger cellSize
+      world.setVoxel(2, 7, 2, 6); // TODO fix cells or use bigger cellSize
 
       const {positions, normals, uvs, indices} = world.generateGeometryDataForCell(0, 0, 0);
       const geometry = new THREE.BufferGeometry();
@@ -193,12 +194,14 @@
       return Math.floor(Math.random() * (max - min) + min);
     }
 
+
+
     class VoxelWorld {
 
       constructor(options) {
         this.cellSize = options.cellSize;
-        this.tileSize = options.tileSize;
 
+        this.tileSize = options.tileSize;
         this.tileTextureWidth = options.tileTextureWidth;
         this.tileTextureHeight = options.tileTextureHeight;
 
