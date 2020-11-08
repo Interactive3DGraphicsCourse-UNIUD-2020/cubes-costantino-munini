@@ -11,4 +11,5 @@
 ## Day 1
 * Aggiunto parapetto, remi e mare nel file *voxel_boat.html*
 * Mare e remi in movimento
-* TODO completare barca e ridurre lag causato dal mare
+* TODO completare barca
+* TODO rivedere texture

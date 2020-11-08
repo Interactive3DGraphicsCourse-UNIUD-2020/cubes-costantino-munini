@@ -191,8 +191,12 @@
 
       // OARS (remi)
 			var cubeGeometry = new THREE.BoxGeometry(1,1,1)
-      //var cubeMaterial = new THREE.MeshBasicMaterial( { color: 0xaaaaaa } );
-      var cubeMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+
+      const oar_texture = loader.load('textures/wood.png', Render);
+      oar_texture.magFilter = THREE.NearestFilter;
+      oar_texture.minFilter = THREE.NearestFilter;
+
+      var cubeMaterial = new THREE.MeshBasicMaterial( { map: oar_texture} );
       var cubeOffsetX = 0.5;
       var cubeOffsetY = 0.5;
       var cubeOffsetZ = 0.5;
