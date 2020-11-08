@@ -5,5 +5,10 @@
 * Presa decisione di creare una scena di una barca in movimento sul mare
 * Il file *voxel.html* è copia e modifica del file *StartingCode-withLights.html*
 
-
 * I Voxel di VoxelWorld non vanno bene per il mare, tento di creare l'effetto voluto con cubi e traslazioni
+
+
+## Day 1
+* Aggiunto parapetto, remi e mare nel file *voxel_boat.html*
+* Mare e remi in movimento
+* TODO completare barca e ridurre lag causato dal mare

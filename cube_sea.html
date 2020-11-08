@@ -95,7 +95,7 @@
 			var material = new THREE.MeshBasicMaterial( { color: 0xaaaaaa, map: texture } );
 
       // SEA
-      seaDim = 18
+      seaDim = 40
       for (let x = 0; x < seaDim; ++x) {
         for (let z = 0; z < seaDim; ++z) {
           var cube = new THREE.Mesh( geometry, material );
@@ -122,7 +122,7 @@
       for (let z = 0; z < seaDim; ++z) {
         for (let x = 0; x < seaDim; ++x) {
           var cube = scene.getObjectByName(`cube_${x}_${z}`);
-          cube.position.y = 0.4 * Math.sin( 0.7 * i + time );
+          cube.position.y = 0.2 * Math.sin( 0.7 * i + time );
         }
         i++;
       }

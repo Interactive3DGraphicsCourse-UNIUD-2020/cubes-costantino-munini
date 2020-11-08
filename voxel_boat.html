@@ -69,7 +69,7 @@
 			var ground = new THREE.Mesh( groundGeo, groundMat );
 			//ground.position.y = -0.5;
 			ground.rotation.x = -Math.PI/2;
-			scene.add( ground );
+			//scene.add( ground );
 			ground.receiveShadow = true;
 			
 			stats = new Stats();
@@ -81,7 +81,7 @@
 			Coordinates.drawAllAxes();
 			
 			controls = new THREE.OrbitControls( camera );
-			controls.addEventListener( 'change', Render );
+			controls.addEventListener( 'change', Render, { capture: false, passive: false } );
 
       // From here inspired by
       // https://threejsfundamentals.org/threejs/lessons/threejs-voxel-geometry.html
@@ -120,9 +120,10 @@
       let bodyOffsetY = 0;
       let bodyOffsetZ = 15;
 
-      let boatLength = 20;
+      let boatLength = 34;
       let boatWidths = [5, 7, 9, 11];
       let boatHeight = boatWidths.length;
+
       for (let y = 0; y < boatHeight; ++y) {
         for (let z = 0; z < boatLength; ++z) {
           for (let x = 0; x < boatWidths[y]; ++x) {
@@ -171,6 +172,81 @@
       }
 
 
+      // PARAPET (parapetto)
+      let parapetLength = boatLength;
+
+      let parapetOffsetX = 12;
+      let parapetOffsetY = 4;
+      let parapetOffsetZ = 15;
+
+      for (let z = 0; z < parapetLength; ++z) {
+        world.setVoxel(parapetOffsetX, parapetOffsetY, z + parapetOffsetZ, 10);
+        world.setVoxel(parapetOffsetX + 10, parapetOffsetY, z + parapetOffsetZ, 10);
+        if (z % 3 == 0) {
+          world.setVoxel(parapetOffsetX, parapetOffsetY + 1, z + parapetOffsetZ, 10);
+          world.setVoxel(parapetOffsetX + 10, parapetOffsetY + 1, z + parapetOffsetZ, 10);
+        }
+      }
+
+
+      // OARS (remi)
+			var cubeGeometry = new THREE.BoxGeometry(1,1,1)
+      //var cubeMaterial = new THREE.MeshBasicMaterial( { color: 0xaaaaaa } );
+      var cubeMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+      var cubeOffsetX = 0.5;
+      var cubeOffsetY = 0.5;
+      var cubeOffsetZ = 0.5;
+
+      var oar = new THREE.Object3D();
+      oar.name = "oar_1";
+
+      for (let x = 0 ; x < 3 + 2 + 3; x++){
+        var cube = new THREE.Mesh( cubeGeometry, cubeMaterial );
+        cube.position.x = x + cubeOffsetX; 
+        cube.position.y = cubeOffsetY; 
+        cube.position.z = cubeOffsetZ; 
+        if (x >= 3) {
+          cube.position.y--;
+        }
+        if (x >= 3 + 2) {
+          cube.position.y--;
+        }
+        cube.position.z = cubeOffsetZ;
+        oar.add( cube );
+      }
+      //scene.add(oar);
+
+      var oarsOffsetX = 13;
+      var oarsOffsetY = 2;
+      var oarsOffsetZ = 15 + 8;
+
+      for (let z = 0; z < 5; z++){
+        var oar_clone = oar.clone();
+        oar_clone.position.x = oarsOffsetX + boatWidths[2];
+        oar_clone.position.y = oarsOffsetY;
+        oar_clone.position.z = z*5 + oarsOffsetZ;
+        oar_clone.name = `oar_left_${z}`;
+        scene.add(oar_clone);
+
+        oar_clone = oar.clone();
+        oar_clone.position.x = oarsOffsetX;
+        oar_clone.position.y = oarsOffsetY;
+        oar_clone.position.z = z*5 + oarsOffsetZ;
+        oar_clone.rotation.y = 180 * Math.PI/180;
+        oar_clone.name = `oar_right_${z}`;
+        scene.add(oar_clone);
+      }
+
+
+
+
+
+
+
+
+
+
+
 
 
       const {positions, normals, uvs, indices} = world.generateGeometryDataForCell(0, 0, 0);
@@ -207,11 +283,42 @@
 			mesh.receiveShadow = true;
 
       scene.add(mesh);
+
+      addSea();
 		}
 
     function randInt(min, max) {
       return Math.floor(Math.random() * (max - min) + min);
     }
+
+    let seaLength, seaWidth;
+
+    function addSea() {
+      // TEXTURE LOADING
+      const loader = new THREE.TextureLoader();
+      //const texture = loader.load('textures/11635.jpg', Render);
+      const texture = loader.load('textures/water.png', Render);
+      texture.magFilter = THREE.NearestFilter;
+      texture.minFilter = THREE.NearestFilter;
+
+			var geometry = new THREE.BoxGeometry(1,1,1);
+			var material = new THREE.MeshBasicMaterial( { color: 0xaaaaaa, map: texture } );
+
+      // SEA
+      seaLength = 60;
+      seaWidth  = 35;
+      for (let x = 0; x < seaWidth; ++x) {
+        for (let z = 0; z < seaLength; ++z) {
+          var cube = new THREE.Mesh( geometry, material );
+          cube.name = `sea_cube_${x}_${z}`;
+          //console.log(cube.name);
+          cube.position.x = x;
+          cube.position.z = z;
+          scene.add( cube );
+        }
+      }
+    }
+
 
 
 
@@ -405,6 +512,29 @@
     ];
 
 		function Update() {
+
+      const time = Date.now() * 0.005;
+
+      for (let z = 0; z < 5; z++){
+        var oar = scene.getObjectByName(`oar_left_${z}`);
+        oar.rotation.z = 0.25 * Math.sin(0.5 * time);
+        oar.rotation.y = 0.3 * Math.cos(0.5 * time);
+
+        oar = scene.getObjectByName(`oar_right_${z}`);
+        oar.rotation.z = 0.25 * Math.sin(0.5 * time);
+        oar.rotation.y = Math.PI;
+        oar.rotation.y -= 0.3  * Math.cos(0.5 * time);
+      }
+
+      var i = 0;
+      for (let z = 0; z < seaLength; ++z) {
+        for (let x = 0; x < seaWidth; ++x) {
+          var cube = scene.getObjectByName(`sea_cube_${x}_${z}`);
+          cube.position.y = 0.2 * Math.sin( 0.7 * i + time );
+        }
+        i++;
+      }
+
 			requestAnimationFrame( Update );
 			controls.update();  
 			stats.update();
