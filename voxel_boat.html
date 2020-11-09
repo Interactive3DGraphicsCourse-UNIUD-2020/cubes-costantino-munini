@@ -43,8 +43,8 @@
 			
       //var cpos = 20;
       //var cpos = 10;
-			camera.position.set(10, 5, -20);
-			camera.lookAt( new THREE.Vector3(30,30,30));
+			camera.position.set(38, 20, 60);
+			//camera.lookAt( new THREE.Vector3(30,30,30));
 			
       // LIGHTS
 			var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
@@ -81,7 +81,8 @@
 			Coordinates.drawAllAxes();
 			
 			controls = new THREE.OrbitControls( camera );
-			controls.addEventListener( 'change', Render, { capture: false, passive: false } );
+      controls.addEventListener( 'change', Render, { capture: false, passive: false } );
+      controls.target = new THREE.Vector3(0,0,0);
 
       // From here inspired by
       // https://threejsfundamentals.org/threejs/lessons/threejs-voxel-geometry.html
@@ -189,6 +190,61 @@
       }
 
 
+      // TREE (albero maestro)
+      let treeHeight  = 26;
+      let treeBaseLength = 2;
+      let treeBaseWidth = 3;
+
+      let treeOffsetX = Math.floor(boatWidths[3] / 2) + bodyOffsetX;
+      let treeOffsetY = boatHeight; // + bodyOffsetU;
+      let treeOffsetZ = Math.floor(boatLength / 2) + bodyOffsetZ;
+
+      for (let y = 0; y < treeHeight; ++y) {
+        for (let z = 0; z < treeBaseLength; ++z) {
+          for (let x = 0; x < treeBaseWidth; ++x) {
+            world.setVoxel(x + treeOffsetX,
+                           y + treeOffsetY,
+                           z + treeOffsetZ, 10);
+          }
+        }
+      }
+
+      let horizontalVSpace = [8, treeHeight - 5];
+      let horizontalLen    = [15, 21];
+
+      for (let i = 0; i < horizontalVSpace.length; i++) {
+        let y = horizontalVSpace[i];
+        for (let x = 0; x < horizontalLen[i]; ++x) {
+              world.setVoxel(x + treeOffsetX - Math.floor(horizontalLen[i]/2) + 1,
+                            y + treeOffsetY,
+                            treeOffsetZ + 1, 10);
+        }
+      }
+
+      // SAIL (vela)
+      let sailWidth = 21;
+
+      let sailOffsetX = treeOffsetX - Math.floor(horizontalLen[1] / 2) + 1;
+      let sailOffsetY = horizontalVSpace[0] + treeOffsetY;
+      let sailOffsetZ = treeOffsetZ + 2;
+
+      let sailYs = [0,0,1,2,3,4,5,6,7,8,9,10,11,12,13];
+      let sailZs = [0,1,2,3,3,4,4,4,4,3,3, 2, 1, 0, 0];
+
+      for (let i = 0; i < sailYs.length; i++) {
+        let y = sailYs[i];
+        let z = sailZs[i];
+          for (let x = 0; x < sailWidth; ++x) {
+            world.setVoxel(x + sailOffsetX,
+                           y + sailOffsetY,
+                           z + sailOffsetZ, 3);
+          }
+      }
+
+
+
+
+
       // OARS (remi)
 			var cubeGeometry = new THREE.BoxGeometry(1,1,1)
 
@@ -288,7 +344,7 @@
 
       scene.add(mesh);
 
-      addSea();
+      //addSea();
 		}
 
     function randInt(min, max) {

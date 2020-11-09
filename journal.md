@@ -13,3 +13,8 @@
 * Mare e remi in movimento
 * TODO completare barca
 * TODO rivedere texture
+
+
+## Day 2
+* Aggiunto albero maestro e vela
+* TODO rivedere texture
