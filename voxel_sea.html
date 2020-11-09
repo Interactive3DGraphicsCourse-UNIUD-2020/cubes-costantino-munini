@@ -39,12 +39,6 @@
 
         vec3 upVec = vec3(0,1,0);
 
-				//vec3 newPosition = position;
-        //if (all(equal(normal, upVec))) {
-				//  newPosition = position + amplitude * normal * vec3( displacement );
-        //}
-
-				//vec3 newPosition = position + amplitude * vec3( displacement );
 				vec3 newPosition = position + amplitude * upVec * vec3( displacement );
 
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
@@ -173,8 +167,6 @@
       });
 
 
-
-
       // SEA
       seaTextureNum = 13;
       seaDim = 18
@@ -186,13 +178,12 @@
       }
 
       // CREATE MESH FOR CELL
-      const {positions, normals, uvs, indices} = world.generateGeometryDataForCell(0, 0, 0);
+      const {positions, normals, uvs, indices} = world.generateGeometryDataForCell(0, 0, 0, full=true);
       geometry = new THREE.BufferGeometry();
-
 
       uniforms = {
         "amplitude": { value: 1.0 },
-        "color": { value: new THREE.Color( 0xff2200 ) },
+        "color": { value: new THREE.Color( 0x006994 ) },
         //"colorTexture": { value: new THREE.TextureLoader().load( "textures/water.jpg" ) }
         //"texture": { value: new THREE.TextureLoader().load('textures/flourish-cc-by-nc-sa.png', Render)} // TODO
       };
@@ -320,7 +311,7 @@
         return cell[voxelOffset];
       }
 
-      generateGeometryDataForCell(cellX, cellY, cellZ) {
+      generateGeometryDataForCell(cellX, cellY, cellZ, full = false) {
          const {cellSize, tileSize, tileTextureWidth, tileTextureHeight} = this;
          const positions = [];
          const normals = [];
@@ -346,7 +337,9 @@
                        voxelX + dir[0],
                        voxelY + dir[1],
                        voxelZ + dir[2]);
-                   if (!neighbor) {
+
+                   if (!neighbor || full) {
+
                      // this voxel has no neighbor in this direction so we need a face.
                      const ndx = positions.length / 3;
                      for (const {pos, uv} of corners) {
@@ -452,24 +445,14 @@
       const time = Date.now() * 0.005;
       
       var group = 0;
-      var groupNum = 1;
-      var j = 0;
-      for ( let i = 0; i < displacement.length; i ++ ) {
-        //displacement[ i ] = Math.sin( 0.1 * i + time );
-        displacement[ i ] = Math.sin( 0.1 * group + time);
-        //displacement[ i ] = Math.sin( 0.1 * group);
-        //if (j >= groupNum) {
-        //  j = 0;
-        //  group++;
-        //}
+      var groupNum = 4 * 6 * seaDim; // 4 vertici per faccia per 6 facce per righe del mare
 
-        group++;
+      for ( let i = 1; i <= displacement.length; i ++ ) {
+        displacement[ i ] = 0.3 * Math.sin( 0.5 * (group + time));
 
-        if (i % (seaDim * 4) == 0) {
-          group = 0;
+        if (i % groupNum == 0) {
+          group++;
         }
-        //j++;
-
       }
       mesh.geometry.attributes.displacement.needsUpdate = true;
 
