@@ -84,9 +84,9 @@
 			// uncomment if you need to draw coordinate axes when building the scene
 			//Coordinates.drawAllAxes();
 			
-      //controls = new THREE.OrbitControls(camera);
-      //controls.addEventListener('change', Render, { capture: false, passive: false });
-      //controls.target = new THREE.Vector3(0, 0, 0);
+      controls = new THREE.OrbitControls(camera);
+      controls.addEventListener('change', Render, { capture: false, passive: false });
+      controls.target = new THREE.Vector3(0, 0, 0);
 
       // From here inspired by
       // https://threejsfundamentals.org/threejs/lessons/threejs-voxel-geometry.html
@@ -139,7 +139,6 @@
       }
 
       // BOW (prua)
-      // let bowOffsetX = offsetX;
       let bowOffsetY = 0;
       let bowOffsetZ = offsetZ + boatLength;
       let bowOffsetX = [1, -1, -2];
@@ -156,6 +155,94 @@
           }
         }
       }
+
+      let baseWidths = [3, 9, 7, 5, 3, 1];
+      let baseOffsetX = [1, -2, -1, 0, 1, 2];
+
+      for (let z = 0; z < 7; ++z) {
+        for (let x = 0; x < baseWidths[z]; ++x) {
+          world.setVoxel(x + offsetX + baseOffsetX[z], 4, z + bowOffsetZ - 2, 10);
+        }
+      }
+
+      // SPUNTONE
+			var cubeGeometry2 = new THREE.BoxGeometry(1,1,1)
+
+      const spuntone_texture = loader.load('textures/wood.png', Render);
+      spuntone_texture.magFilter = THREE.NearestFilter;
+      spuntone_texture.minFilter = THREE.NearestFilter;
+
+      var cubeMaterial2 = new THREE.MeshBasicMaterial( { map: spuntone_texture} );
+      var cube2OffsetX = 0.5;
+      var cube2OffsetY = 0.5;
+      var cube2OffsetZ = 0.5;
+      var spuntoneOffsetX = Math.floor(boatWidths[3] / 2) + bodyOffsetX + cube2OffsetX + 1;
+      var spuntoneOffsetY = 5 + cube2OffsetY;
+      var spuntoneOffsetZ = boatLength + offsetZ + cube2OffsetZ;
+
+      var gradini = [4, 3, 3];
+
+      var spuntone = new THREE.Object3D();
+
+      var cube2 = new THREE.Mesh(cubeGeometry2, cubeMaterial2);
+      for (let y = 0 ; y < 3; ++y) {
+        for (let z = 0 ; z < gradini[y]; ++z) {
+          var cube2_clone = cube2.clone();
+          cube2.position.x = spuntoneOffsetX; 
+          cube2.position.y = spuntoneOffsetY + y; 
+          cube2.position.z = spuntoneOffsetZ + z;
+          spuntone.add(cube2_clone);
+        }
+        spuntoneOffsetZ++;
+      }
+
+      // corni
+      for (let y = 0 ; y < 3; ++y) {
+        if (y < 2) {
+          var cube2_clone = cube2.clone();
+          cube2.position.x = spuntoneOffsetX - 1; 
+          cube2.position.y = spuntoneOffsetY + y + 2; 
+          cube2.position.z = spuntoneOffsetZ;
+          spuntone.add(cube2_clone);
+          cube2_clone = cube2.clone();
+          cube2.position.x = spuntoneOffsetX + 1; 
+          cube2.position.y = spuntoneOffsetY + y + 2; 
+          cube2.position.z = spuntoneOffsetZ;
+          spuntone.add(cube2_clone);
+        } else {
+          cube2_clone = cube2.clone();
+          cube2.position.x = spuntoneOffsetX - 1; 
+          cube2.position.y = spuntoneOffsetY + y + 1; 
+          cube2.position.z = spuntoneOffsetZ + 1;
+          spuntone.add(cube2_clone);
+          cube2_clone = cube2.clone();
+          cube2.position.x = spuntoneOffsetX + 1; 
+          cube2.position.y = spuntoneOffsetY + y + 1; 
+          cube2.position.z = spuntoneOffsetZ + 1;
+          spuntone.add(cube2_clone);
+        }
+      }
+
+      var cube2_clone = cube2.clone();
+      cube2.position.x = spuntoneOffsetX; 
+      cube2.position.y = spuntoneOffsetY + 2; 
+      cube2.position.z = spuntoneOffsetZ + 1;
+      spuntone.add(cube2_clone);
+
+      var cube2_clone = cube2.clone();
+      cube2.position.x = spuntoneOffsetX; 
+      cube2.position.y = spuntoneOffsetY + 3; 
+      cube2.position.z = spuntoneOffsetZ + 1;
+      spuntone.add(cube2_clone);
+
+      var cube2_clone = cube2.clone();
+      cube2.position.x = spuntoneOffsetX - 1; 
+      cube2.position.y = spuntoneOffsetY + 3; 
+      cube2.position.z = spuntoneOffsetZ + 1;
+      spuntone.add(cube2_clone); // Stranezze...
+
+      scene.add(spuntone);
+
 
       // STERN (poppa)
       let sternOffsetY = 3;
@@ -175,6 +262,22 @@
         }
         sternOffsetY -= 1;
       }
+
+      let baseWidthsInv = [1, 3, 5, 7, 9, 3];
+      let baseOffsetXInv = [2, 1, 0, -1, -2, 1];
+
+      for (let z = 0; z < 7; ++z) {
+        for (let x = 0; x < baseWidthsInv[z]; ++x) {
+          world.setVoxel(x + offsetX + baseOffsetXInv[z], 4, z + sternOffsetZ - 2, 10);
+        }
+      }
+
+      var spuntone_clone = spuntone.clone();
+      spuntone_clone.position.x = offsetX + 20;
+      spuntone_clone.position.y = 0; 
+      spuntone_clone.position.z = offsetZ + 48;
+      spuntone_clone.rotation.y = 180 * Math.PI / 180;
+      scene.add(spuntone_clone);
 
 
       // PARAPET (parapetto)
@@ -603,12 +706,12 @@
       //   i++;
       // }
 
-      cameraPivot.rotation.y += 0.005;
-      camera.position.y = 20 +  10 * Math.sin( 0.05 * time );
-      console.log( camera.position.y );
+      // cameraPivot.rotation.y += 0.005;
+      // camera.position.y = 20 +  10 * Math.sin( 0.05 * time );
+      // console.log( camera.position.y );
 
 			requestAnimationFrame( Update );
-			//controls.update();  
+			controls.update();  
 			stats.update();
 			Render();
 		}
