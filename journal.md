@@ -17,4 +17,5 @@
 
 ## Day 2
 * Aggiunto albero maestro e vela
+* Movimento telecamera semplice
 * TODO rivedere texture
