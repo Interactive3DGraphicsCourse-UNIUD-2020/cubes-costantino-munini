@@ -27,6 +27,7 @@
 		
 		var scene, camera, renderer, controls, stats;
     var world;
+    var cameraPivot;
 		
 		function Start() {
 			scene = new THREE.Scene();
@@ -41,10 +42,13 @@
 			renderer.shadowMap.enabled = true;
 			document.body.appendChild( renderer.domElement );
 			
-      //var cpos = 20;
-      //var cpos = 10;
-			camera.position.set(38, 20, 60);
-			//camera.lookAt( new THREE.Vector3(30,30,30));
+			//camera.position.set(38, 20, 60);
+			camera.position.set(30, 20, 30);
+      camera.lookAt( new THREE.Vector3(0,0,0));
+
+      cameraPivot = new THREE.Object3D();
+      cameraPivot.add(camera);
+      scene.add(cameraPivot);
 			
       // LIGHTS
 			var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
@@ -78,11 +82,11 @@
 			document.body.appendChild( stats.domElement );
 			
 			// uncomment if you need to draw coordinate axes when building the scene
-			Coordinates.drawAllAxes();
+			//Coordinates.drawAllAxes();
 			
-			controls = new THREE.OrbitControls( camera );
-      controls.addEventListener( 'change', Render, { capture: false, passive: false } );
-      controls.target = new THREE.Vector3(0,0,0);
+      //controls = new THREE.OrbitControls(camera);
+      //controls.addEventListener('change', Render, { capture: false, passive: false });
+      //controls.target = new THREE.Vector3(0, 0, 0);
 
       // From here inspired by
       // https://threejsfundamentals.org/threejs/lessons/threejs-voxel-geometry.html
@@ -344,7 +348,11 @@
 
       scene.add(mesh);
 
-      //addSea();
+      addSea();
+
+      cameraPivot.position.x = treeOffsetX;
+      cameraPivot.position.y = treeOffsetY;
+      cameraPivot.position.z = treeOffsetZ;
 		}
 
     function randInt(min, max) {
@@ -586,17 +594,21 @@
         oar.rotation.y -= 0.3  * Math.cos(0.5 * time);
       }
 
-      var i = 0;
-      for (let z = 0; z < seaLength; ++z) {
-        for (let x = 0; x < seaWidth; ++x) {
-          var cube = scene.getObjectByName(`sea_cube_${x}_${z}`);
-          cube.position.y = 0.2 * Math.sin( 0.7 * i + time );
-        }
-        i++;
-      }
+      // var i = 0;
+      // for (let z = 0; z < seaLength; ++z) {
+      //   for (let x = 0; x < seaWidth; ++x) {
+      //     var cube = scene.getObjectByName(`sea_cube_${x}_${z}`);
+      //     cube.position.y = 0.2 * Math.sin( 0.7 * i + time );
+      //   }
+      //   i++;
+      // }
+
+      cameraPivot.rotation.y += 0.005;
+      camera.position.y = 20 +  10 * Math.sin( 0.05 * time );
+      console.log( camera.position.y );
 
 			requestAnimationFrame( Update );
-			controls.update();  
+			//controls.update();  
 			stats.update();
 			Render();
 		}
