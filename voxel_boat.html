@@ -22,11 +22,39 @@
 		<script src="lib/OrbitControls.js"></script>
 	</head>
 	<body>
+
+		<script type="x-shader/x-vertex" id="vertexshader">
+			attribute float displacement;
+			varying vec3 vNormal;
+
+			void main() {
+				vNormal = normal;
+        vec3 upVec = vec3(0,1,0);
+				vec3 newPosition = position + upVec * vec3( displacement );
+
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+			}
+		</script>
+
+		<script type="x-shader/x-fragment" id="fragmentshader">
+			varying vec3 vNormal;
+			uniform vec3 color;
+
+			void main() {
+				vec3 light = vec3( 0.5, 0.2, 1.0 );
+				light = normalize( light );
+				float dProd = dot( vNormal, light ) * 0.5 + 0.5;
+
+				gl_FragColor = vec4( vec3( dProd ) * vec3( color ), 1.0 );
+			}
+		</script>
+
+
 		
 		<script>
 		
 		var scene, camera, renderer, controls, stats;
-    var world;
+    var world, cellSize;
     var cameraPivot;
 		
 		function Start() {
@@ -46,9 +74,9 @@
 			camera.position.set(30, 20, 30);
       camera.lookAt( new THREE.Vector3(0,0,0));
 
-      cameraPivot = new THREE.Object3D();
-      cameraPivot.add(camera);
-      scene.add(cameraPivot);
+      //cameraPivot = new THREE.Object3D();
+      //cameraPivot.add(camera);
+      //scene.add(cameraPivot);
 			
       // LIGHTS
 			var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
@@ -98,7 +126,7 @@
       texture.minFilter = THREE.NearestFilter;
 
 
-      const cellSize = 64;
+      cellSize = 64;
       //const cellSize = 5;
 
       const tileSize = 16;
@@ -453,41 +481,68 @@
 
       addSea();
 
-      cameraPivot.position.x = treeOffsetX;
-      cameraPivot.position.y = treeOffsetY;
-      cameraPivot.position.z = treeOffsetZ;
+      //cameraPivot.position.x = treeOffsetX;
+      //cameraPivot.position.y = treeOffsetY;
+      //cameraPivot.position.z = treeOffsetZ;
 		}
 
     function randInt(min, max) {
       return Math.floor(Math.random() * (max - min) + min);
     }
 
-    let seaLength, seaWidth;
+
+    let seaDim, seaMesh;
 
     function addSea() {
-      // TEXTURE LOADING
-      const loader = new THREE.TextureLoader();
-      //const texture = loader.load('textures/11635.jpg', Render);
-      const texture = loader.load('textures/water.png', Render);
-      texture.magFilter = THREE.NearestFilter;
-      texture.minFilter = THREE.NearestFilter;
+      var seaTextureNum = 13;
+      seaDim = cellSize - 2;
+      var seaOffsetX = cellSize;
+      var seaOffsetZ = cellSize;
 
-			var geometry = new THREE.BoxGeometry(1,1,1);
-			var material = new THREE.MeshBasicMaterial( { color: 0xaaaaaa, map: texture } );
-
-      // SEA
-      seaLength = 60;
-      seaWidth  = 35;
-      for (let x = 0; x < seaWidth; ++x) {
-        for (let z = 0; z < seaLength; ++z) {
-          var cube = new THREE.Mesh( geometry, material );
-          cube.name = `sea_cube_${x}_${z}`;
-          //console.log(cube.name);
-          cube.position.x = x;
-          cube.position.z = z;
-          scene.add( cube );
+      for (let x = 0; x < seaDim; ++x) {
+        for (let z = 0; z < seaDim; ++z) {
+          world.setVoxel(x + seaOffsetX, 0, z + seaOffsetZ, seaTextureNum);
         }
       }
+
+      // CREATE MESH FOR SEA
+      const {positions, normals, uvs, indices} = world.generateGeometryDataForCell(1, 0, 1, full=true);
+      seaGeometry = new THREE.BufferGeometry();
+
+      seaUniforms = {
+        "color": { value: new THREE.Color( 0x006994 ) }, // TODO add texture
+      };
+
+      const seaMaterial = new THREE.ShaderMaterial( {
+        side: THREE.DoubleSide, // TODO
+        //alphaTest: 0.1,
+        //transparent: true,
+        uniforms: seaUniforms,
+        vertexShader: document.getElementById( 'vertexshader' ).textContent,
+        fragmentShader: document.getElementById( 'fragmentshader' ).textContent
+      } );
+
+      const positionNumComponents = 3;
+      const normalNumComponents = 3;
+      const uvNumComponents = 2;
+      seaGeometry.setAttribute(
+          'position',
+          new THREE.BufferAttribute(new Float32Array(positions), positionNumComponents));
+      seaGeometry.setAttribute(
+          'normal',
+          new THREE.BufferAttribute(new Float32Array(normals), normalNumComponents));
+      seaGeometry.setAttribute(
+          'uv',
+          new THREE.BufferAttribute(new Float32Array(uvs), uvNumComponents));
+      seaGeometry.setIndex(indices);
+
+      displacement = new Float32Array( seaGeometry.attributes.position.count );
+      seaGeometry.setAttribute( 'displacement', new THREE.BufferAttribute( displacement, 1 ) );
+
+      seaMesh = new THREE.Mesh(seaGeometry, seaMaterial);
+      seaMesh.position.x = - seaDim / 4;
+
+      scene.add(seaMesh);
     }
 
 
@@ -559,7 +614,7 @@
         return cell[voxelOffset];
       }
 
-      generateGeometryDataForCell(cellX, cellY, cellZ) {
+      generateGeometryDataForCell(cellX, cellY, cellZ, full = false) {
          const {cellSize, tileSize, tileTextureWidth, tileTextureHeight} = this;
          const positions = [];
          const normals = [];
@@ -585,7 +640,7 @@
                        voxelX + dir[0],
                        voxelY + dir[1],
                        voxelZ + dir[2]);
-                   if (!neighbor) {
+                   if (!neighbor || full) {
                      // this voxel has no neighbor in this direction so we need a face.
                      const ndx = positions.length / 3;
                      for (const {pos, uv} of corners) {
@@ -682,6 +737,22 @@
       },
     ];
 
+
+    function seaUpdate(time) {
+      var group = 0;
+      var groupNum = 4 * 6 * seaDim; // 4 vertici per faccia per 6 facce per righe del mare
+
+      for ( let i = 1; i <= displacement.length; i ++ ) {
+        displacement[ i ] = 0.3 * Math.sin( 0.5 * (group + time));
+
+        if (i % groupNum == 0) {
+          group++;
+        }
+      }
+      seaMesh.geometry.attributes.displacement.needsUpdate = true;
+    }
+
+
 		function Update() {
 
       const time = Date.now() * 0.005;
@@ -697,24 +768,19 @@
         oar.rotation.y -= 0.3  * Math.cos(0.5 * time);
       }
 
-      // var i = 0;
-      // for (let z = 0; z < seaLength; ++z) {
-      //   for (let x = 0; x < seaWidth; ++x) {
-      //     var cube = scene.getObjectByName(`sea_cube_${x}_${z}`);
-      //     cube.position.y = 0.2 * Math.sin( 0.7 * i + time );
-      //   }
-      //   i++;
-      // }
+      seaUpdate(time);
 
-      // cameraPivot.rotation.y += 0.005;
-      // camera.position.y = 20 +  10 * Math.sin( 0.05 * time );
-      // console.log( camera.position.y );
+      //cameraPivot.rotation.y += 0.005;
+      //camera.position.y = 20 +  10 * Math.sin( 0.05 * time );
+      ////console.log( camera.position.y );
+
 
 			requestAnimationFrame( Update );
 			controls.update();  
 			stats.update();
 			Render();
 		}
+
 		
 		function Render() {
 			renderer.render(scene, camera);
