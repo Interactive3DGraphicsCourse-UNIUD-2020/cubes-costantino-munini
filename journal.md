@@ -24,3 +24,4 @@
 
 ## Day 3
 * Aggiunto decoro barca (spuntoni)
+* Esperimenti con le texture

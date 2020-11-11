@@ -121,9 +121,19 @@
 
       // TEXTURE LOADING
       const loader = new THREE.TextureLoader();
-      const texture = loader.load('textures/flourish-cc-by-nc-sa.png', Render);
+      //const texture = loader.load('textures/flourish-cc-by-nc-sa.png', Render);
+      const texture = loader.load('textures/our_textures.png', Render);
       texture.magFilter = THREE.NearestFilter;
       texture.minFilter = THREE.NearestFilter;
+
+      var boatTexture  = 2;
+      var sailsTexture = 3;
+
+      var seaTexture = 4;
+
+      var ramBodyTexture  = 5;
+      var ramHeadTexture  = 6;
+      var ramHornsTexture = 7;
 
 
       cellSize = 64;
@@ -160,7 +170,7 @@
       for (let y = 0; y < boatHeight; ++y) {
         for (let z = 0; z < boatLength; ++z) {
           for (let x = 0; x < boatWidths[y]; ++x) {
-            world.setVoxel(x + bodyOffsetX, y + offsetY, z + offsetZ, 10);
+            world.setVoxel(x + bodyOffsetX, y + offsetY, z + offsetZ, boatTexture);
           }
         }
         bodyOffsetX -= 1;
@@ -179,7 +189,7 @@
         bowOffsetY += 1;
         for (let y = 0; y < bowHeights[z]; ++y) {
           for (let x = 0; x < bowWidths[y]; ++x) {
-            world.setVoxel(x + offsetX + bowOffsetX[y], y + bowOffsetY, z + bowOffsetZ, 10);
+            world.setVoxel(x + offsetX + bowOffsetX[y], y + bowOffsetY, z + bowOffsetZ, boatTexture);
           }
         }
       }
@@ -189,7 +199,7 @@
 
       for (let z = 0; z < 7; ++z) {
         for (let x = 0; x < baseWidths[z]; ++x) {
-          world.setVoxel(x + offsetX + baseOffsetX[z], 4, z + bowOffsetZ - 2, 10);
+          world.setVoxel(x + offsetX + baseOffsetX[z], 4, z + bowOffsetZ - 2, boatTexture);
         }
       }
 
@@ -202,21 +212,21 @@
 
       for (let y = 0 ; y < 3; ++y) {
         for (let z = 0 ; z < gradini[y]; ++z) {
-          world.setVoxel(spuntoneOffsetX, spuntoneOffsetY + y, spuntoneOffsetZ + z, 9);
+          world.setVoxel(spuntoneOffsetX, spuntoneOffsetY + y, spuntoneOffsetZ + z, ramBodyTexture);
         }
         spuntoneOffsetZ++;
       }
 
-      world.setVoxel(spuntoneOffsetX, spuntoneOffsetY + 3, spuntoneOffsetZ + 1, 5);
+      world.setVoxel(spuntoneOffsetX, spuntoneOffsetY + 3, spuntoneOffsetZ + 1, ramHeadTexture);
 
-      // corni
+      // CORNI
       for (let y = 0 ; y < 3; ++y) {
         if (y < 2) {
-          world.setVoxel(spuntoneOffsetX - 1, spuntoneOffsetY + y + 2, spuntoneOffsetZ, 5);
-          world.setVoxel(spuntoneOffsetX + 1, spuntoneOffsetY + y + 2, spuntoneOffsetZ, 5);
+          world.setVoxel(spuntoneOffsetX - 1, spuntoneOffsetY + y + 2, spuntoneOffsetZ, ramHornsTexture);
+          world.setVoxel(spuntoneOffsetX + 1, spuntoneOffsetY + y + 2, spuntoneOffsetZ, ramHornsTexture);
         } else {
-          world.setVoxel(spuntoneOffsetX - 1, spuntoneOffsetY + y + 1, spuntoneOffsetZ + 1, 5);
-          world.setVoxel(spuntoneOffsetX + 1, spuntoneOffsetY + y + 1, spuntoneOffsetZ + 1, 5);
+          world.setVoxel(spuntoneOffsetX - 1, spuntoneOffsetY + y + 1, spuntoneOffsetZ + 1, ramHornsTexture);
+          world.setVoxel(spuntoneOffsetX + 1, spuntoneOffsetY + y + 1, spuntoneOffsetZ + 1, ramHornsTexture);
         }
       }
 
@@ -232,7 +242,7 @@
       for (let z = 0; z < sternLengths; ++z) {
         for (let y = 0; y < sternHeights[z]; ++y) {
           for (let x = 0; x < sternWidths[y]; ++x) {
-            world.setVoxel(x + offsetX + sternOffsetX[y], y + sternOffsetY, z + sternOffsetZ, 10);
+            world.setVoxel(x + offsetX + sternOffsetX[y], y + sternOffsetY, z + sternOffsetZ, boatTexture);
             // console.log("coor: ", x + offsetX + sternOffsetX[y], y + sternOffsetY, z + sternOffsetZ);
           }
         }
@@ -244,7 +254,7 @@
 
       for (let z = 0; z < 7; ++z) {
         for (let x = 0; x < baseWidthsInv[z]; ++x) {
-          world.setVoxel(x + offsetX + baseOffsetXInv[z], 4, z + sternOffsetZ - 2, 10);
+          world.setVoxel(x + offsetX + baseOffsetXInv[z], 4, z + sternOffsetZ - 2, boatTexture);
         }
       }
 
@@ -260,20 +270,20 @@
           spuntoneOffsetZ--;
         }
         for (let z = gradini[y]; z > 0; z--) {
-          world.setVoxel(spuntoneOffsetX, spuntoneOffsetY + y, spuntoneOffsetZ + z, 9);
+          world.setVoxel(spuntoneOffsetX, spuntoneOffsetY + y, spuntoneOffsetZ + z, ramBodyTexture);
         }
       }
 
-      world.setVoxel(spuntoneOffsetX, spuntoneOffsetY + 3, spuntoneOffsetZ + 1, 5);
+      world.setVoxel(spuntoneOffsetX, spuntoneOffsetY + 3, spuntoneOffsetZ + 1, ramHeadTexture);
 
-      // corni
+      // CORNI
       for (let y = 0 ; y < 3; ++y) {
         if (y < 2) {
-          world.setVoxel(spuntoneOffsetX - 1, spuntoneOffsetY + y + 2, spuntoneOffsetZ + 2, 5);
-          world.setVoxel(spuntoneOffsetX + 1, spuntoneOffsetY + y + 2, spuntoneOffsetZ + 2, 5);
+          world.setVoxel(spuntoneOffsetX - 1, spuntoneOffsetY + y + 2, spuntoneOffsetZ + 2, ramHornsTexture);
+          world.setVoxel(spuntoneOffsetX + 1, spuntoneOffsetY + y + 2, spuntoneOffsetZ + 2, ramHornsTexture);
         } else {
-          world.setVoxel(spuntoneOffsetX - 1, spuntoneOffsetY + y + 1, spuntoneOffsetZ + 1, 5);
-          world.setVoxel(spuntoneOffsetX + 1, spuntoneOffsetY + y + 1, spuntoneOffsetZ + 1, 5);
+          world.setVoxel(spuntoneOffsetX - 1, spuntoneOffsetY + y + 1, spuntoneOffsetZ + 1, ramHornsTexture);
+          world.setVoxel(spuntoneOffsetX + 1, spuntoneOffsetY + y + 1, spuntoneOffsetZ + 1, ramHornsTexture);
         }
       }
 
@@ -285,11 +295,11 @@
       let parapetOffsetZ = 15;
 
       for (let z = 0; z < parapetLength; ++z) {
-        world.setVoxel(parapetOffsetX, parapetOffsetY, z + parapetOffsetZ, 10);
-        world.setVoxel(parapetOffsetX + 10, parapetOffsetY, z + parapetOffsetZ, 10);
+        world.setVoxel(parapetOffsetX, parapetOffsetY, z + parapetOffsetZ, boatTexture);
+        world.setVoxel(parapetOffsetX + 10, parapetOffsetY, z + parapetOffsetZ, boatTexture);
         if (z % 3 == 0) {
-          world.setVoxel(parapetOffsetX, parapetOffsetY + 1, z + parapetOffsetZ, 10);
-          world.setVoxel(parapetOffsetX + 10, parapetOffsetY + 1, z + parapetOffsetZ, 10);
+          world.setVoxel(parapetOffsetX, parapetOffsetY + 1, z + parapetOffsetZ, boatTexture);
+          world.setVoxel(parapetOffsetX + 10, parapetOffsetY + 1, z + parapetOffsetZ, boatTexture);
         }
       }
 
@@ -308,7 +318,7 @@
           for (let x = 0; x < treeBaseWidth; ++x) {
             world.setVoxel(x + treeOffsetX,
                            y + treeOffsetY,
-                           z + treeOffsetZ, 10);
+                           z + treeOffsetZ, boatTexture);
           }
         }
       }
@@ -321,7 +331,7 @@
         for (let x = 0; x < horizontalLen[i]; ++x) {
               world.setVoxel(x + treeOffsetX - Math.floor(horizontalLen[i]/2) + 1,
                             y + treeOffsetY,
-                            treeOffsetZ + 1, 10);
+                            treeOffsetZ + 1, boatTexture);
         }
       }
 
@@ -341,7 +351,7 @@
           for (let x = 0; x < sailWidth; ++x) {
             world.setVoxel(x + sailOffsetX,
                            y + sailOffsetY,
-                           z + sailOffsetZ, 3);
+                           z + sailOffsetZ, sailsTexture);
           }
       }
 
@@ -448,7 +458,7 @@
 
       scene.add(mesh);
 
-      //addSea();
+      addSea();
 
       //cameraPivot.position.x = treeOffsetX;
       //cameraPivot.position.y = treeOffsetY;
@@ -737,7 +747,7 @@
         oar.rotation.y -= 0.3  * Math.cos(0.5 * time);
       }
 
-      //seaUpdate(time);
+      seaUpdate(time);
 
       //cameraPivot.rotation.y += 0.005;
       //camera.position.y = 20 +  10 * Math.sin( 0.05 * time );
