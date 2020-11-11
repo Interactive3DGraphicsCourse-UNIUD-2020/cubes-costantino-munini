@@ -23,7 +23,7 @@
 	</head>
 	<body>
 
-		<script type="x-shader/x-vertex" id="vertexshader">
+		<script type="x-shader/x-vertex" id="seaVertexshader">
 			attribute float displacement;
 			varying vec3 vNormal;
 
@@ -36,7 +36,7 @@
 			}
 		</script>
 
-		<script type="x-shader/x-fragment" id="fragmentshader">
+		<script type="x-shader/x-fragment" id="seaFragmentshader">
 			varying vec3 vNormal;
 			uniform vec3 color;
 
@@ -55,6 +55,7 @@
 
     import {VoxelWorld} from './voxelWorld.js';
     import {addBoat, updateBoat} from './boat.js';
+    import {addSea, updateSea} from './sea.js';
 		
 		var scene, camera, renderer, controls, stats;
     var world, cellSize;
@@ -123,7 +124,7 @@
       //scene.add(boatMesh);
 
       addBoat(scene, Render);
-      addSea();
+      addSea(scene);
 
       //cameraPivot.position.x = treeOffsetX;
       //cameraPivot.position.y = treeOffsetY;
@@ -135,88 +136,7 @@
     }
 
 
-    let seaDim, seaMesh;
-    let displacement;
 
-    function addSea() {
-      cellSize = 64;
-
-      const tileSize = 16;
-      const tileTextureWidth = 256;
-      const tileTextureHeight = 64;
-
-      world = new VoxelWorld({
-        cellSize,
-        tileSize,
-        tileTextureWidth,
-        tileTextureHeight,
-      });
-
-      var seaTextureNum = 13;
-      seaDim = cellSize - 2;
-      var seaOffsetX = cellSize;
-      var seaOffsetZ = cellSize;
-
-      for (let x = 0; x < seaDim; ++x) {
-        for (let z = 0; z < seaDim; ++z) {
-          world.setVoxel(x + seaOffsetX, 0, z + seaOffsetZ, seaTextureNum);
-        }
-      }
-
-      // CREATE MESH FOR SEA
-      const {positions, normals, uvs, indices} = world.generateGeometryDataForCell(1, 0, 1, {full:true});
-      var seaGeometry = new THREE.BufferGeometry();
-
-     var seaUniforms = {
-        "color": { value: new THREE.Color( 0x006994 ) }, // TODO add texture
-      };
-
-      const seaMaterial = new THREE.ShaderMaterial( {
-        side: THREE.DoubleSide, // TODO
-        //alphaTest: 0.1,
-        //transparent: true,
-        uniforms: seaUniforms,
-        vertexShader: document.getElementById( 'vertexshader' ).textContent,
-        fragmentShader: document.getElementById( 'fragmentshader' ).textContent
-      } );
-
-      const positionNumComponents = 3;
-      const normalNumComponents = 3;
-      const uvNumComponents = 2;
-      seaGeometry.setAttribute(
-          'position',
-          new THREE.BufferAttribute(new Float32Array(positions), positionNumComponents));
-      seaGeometry.setAttribute(
-          'normal',
-          new THREE.BufferAttribute(new Float32Array(normals), normalNumComponents));
-      seaGeometry.setAttribute(
-          'uv',
-          new THREE.BufferAttribute(new Float32Array(uvs), uvNumComponents));
-      seaGeometry.setIndex(indices);
-
-      displacement = new Float32Array( seaGeometry.attributes.position.count );
-      seaGeometry.setAttribute( 'displacement', new THREE.BufferAttribute( displacement, 1 ) );
-
-      seaMesh = new THREE.Mesh(seaGeometry, seaMaterial);
-      seaMesh.position.x = - seaDim / 4;
-
-      scene.add(seaMesh);
-    }
-
-
-    function seaUpdate(time) {
-      var group = 0;
-      var groupNum = 4 * 6 * seaDim; // 4 vertici per faccia per 6 facce per righe del mare
-
-      for ( let i = 1; i <= displacement.length; i ++ ) {
-        displacement[ i ] = 0.3 * Math.sin( 0.5 * (group + time));
-
-        if (i % groupNum == 0) {
-          group++;
-        }
-      }
-      seaMesh.geometry.attributes.displacement.needsUpdate = true;
-    }
 
 
 		function Update() {
@@ -224,7 +144,7 @@
       const time = Date.now() * 0.005;
 
       updateBoat(scene, time);
-      seaUpdate(time);
+      updateSea(time);
 
       //cameraPivot.rotation.y += 0.005;
       //camera.position.y = 20 +  10 * Math.sin( 0.05 * time );
