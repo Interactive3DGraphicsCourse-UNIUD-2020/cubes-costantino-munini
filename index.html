@@ -95,23 +95,15 @@
       controls.addEventListener('change', Render, { capture: false, passive: false });
       controls.target = new THREE.Vector3(0, 0, 0);
 
-     
-      //scene.add(boatMesh);
-
-      addBoat(scene, Render);
-      addSea(scene);
-
       //cameraPivot.position.x = treeOffsetX;
       //cameraPivot.position.y = treeOffsetY;
       //cameraPivot.position.z = treeOffsetZ;
+
+
+
+      addBoat(scene, Render);
+      addSea(scene);
 		}
-
-    function randInt(min, max) {
-      return Math.floor(Math.random() * (max - min) + min);
-    }
-
-
-
 
 
 		function Update() {
