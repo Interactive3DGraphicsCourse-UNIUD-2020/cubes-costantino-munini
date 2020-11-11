@@ -20,3 +20,7 @@
 * Movimento telecamera semplice
 * TODO rivedere texture
 * Movimento mare in *voxel_sea.html* con vertex shader (60fps no lag)
+
+
+## Day 3
+* Aggiunto decoro barca (spuntoni)
