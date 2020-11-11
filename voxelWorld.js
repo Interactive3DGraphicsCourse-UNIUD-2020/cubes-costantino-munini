@@ -1,3 +1,4 @@
+
 export class VoxelWorld {
 
     constructor(options) {
@@ -183,4 +184,5 @@ export class VoxelWorld {
       ],
     },
   ];
+
 
