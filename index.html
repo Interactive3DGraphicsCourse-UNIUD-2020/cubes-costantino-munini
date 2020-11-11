@@ -53,9 +53,9 @@
 			camera.position.set(30, 20, 30);
       camera.lookAt( new THREE.Vector3(0,0,0));
 
-      //cameraPivot = new THREE.Object3D();
-      //cameraPivot.add(camera);
-      //scene.add(cameraPivot);
+      cameraPivot = new THREE.Object3D();
+      cameraPivot.add(camera);
+      scene.add(cameraPivot);
 			
       // LIGHTS
 			var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
@@ -73,15 +73,6 @@
 			dirLight.shadow.mapSize.width = 1024;
 			dirLight.shadow.mapSize.height = 1024;
 
-			// GROUND
-			var groundGeo = new THREE.PlaneBufferGeometry( 10000, 10000 );
-			var groundMat = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x050505 } );
-			groundMat.color.setHSL( 0.095, 1, 0.75 );
-			var ground = new THREE.Mesh( groundGeo, groundMat );
-			//ground.position.y = -0.5;
-			ground.rotation.x = -Math.PI/2;
-			//scene.add( ground );
-			ground.receiveShadow = true;
 			
 			stats = new Stats();
 			stats.domElement.style.position = 'absolute';
@@ -91,13 +82,14 @@
 			// uncomment if you need to draw coordinate axes when building the scene
 			//Coordinates.drawAllAxes();
 			
-      controls = new THREE.OrbitControls(camera);
-      controls.addEventListener('change', Render, { capture: false, passive: false });
-      controls.target = new THREE.Vector3(0, 0, 0);
+      //controls = new THREE.OrbitControls(camera);
+      //controls.addEventListener('change', Render, { capture: false, passive: false });
+      //controls.target = new THREE.Vector3(0, 0, 0);
 
-      //cameraPivot.position.x = treeOffsetX;
-      //cameraPivot.position.y = treeOffsetY;
-      //cameraPivot.position.z = treeOffsetZ;
+      // Circa tree position
+      cameraPivot.position.x = 13;
+      cameraPivot.position.y = 4;
+      cameraPivot.position.z = 20;
 
 
 
@@ -113,12 +105,11 @@
       updateBoat(scene, time);
       updateSea(time);
 
-      //cameraPivot.rotation.y += 0.005;
-      //camera.position.y = 20 +  10 * Math.sin( 0.05 * time );
-      ////console.log( camera.position.y );
+      cameraPivot.rotation.y += 0.005;
+      camera.position.y = 20 +  10 * Math.sin( 0.05 * time );
 
 			requestAnimationFrame( Update );
-			controls.update();  
+			//controls.update();  
 			stats.update();
 			Render();
 		}

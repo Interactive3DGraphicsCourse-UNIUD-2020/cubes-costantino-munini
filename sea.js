@@ -50,7 +50,7 @@ export function addSea(scene) {
     });
 
     var seaTextureNum = 13;
-    seaDim = cellSize - 2;
+    seaDim = cellSize - 1;
     var seaOffsetX = cellSize;
     var seaOffsetZ = cellSize;
 
