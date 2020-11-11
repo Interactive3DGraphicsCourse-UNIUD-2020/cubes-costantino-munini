@@ -1,5 +1,55 @@
 import { VoxelWorld } from './voxelWorld.js'
 
+const vertexShader =
+`
+    varying vec3 vNormal;
+    varying vec3 vColor;
+	  varying vec2 vUv;
+
+    attribute float voxelValues;
+
+    vec3 toColor(float vVal) { // TODO
+      if (vVal == 1.0) {
+        return vec3(1,0,0);
+      } else if (vVal == 2.0) {
+        return vec3(0,1,0);
+      } else if (vVal > 4.0) {
+        return vec3(0,0,1);
+      } else {
+        return vec3(0.1);
+      }
+    }
+
+    void main() {
+        vNormal = normal;
+				vUv = uv;
+
+        vColor = toColor(voxelValues);
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }
+`
+
+const fragmentShader =
+`
+    varying vec3 vNormal;
+    varying vec3 vColor;
+
+    uniform vec3 color;
+
+    uniform sampler2D texture;
+		varying vec2 vUv;
+
+    void main() {
+        // Decomment for no texture
+        gl_FragColor = texture2D( texture, vUv );
+
+        // Uncomment for no texture
+        //gl_FragColor = vec4( vColor, 1.0);
+
+    }
+`
+
 
 let world, cellSize;
 
@@ -272,14 +322,30 @@ export function addBoat(scene, Render) {
 
 
   // GENERATE BOAT MESH
-  const { positions, normals, uvs, indices } = world.generateGeometryDataForCell(0, 0, 0);
+  const { positions, normals, voxelValues, uvs, indices, } = world.generateGeometryDataForCell(0, 0, 0);
   const geometry = new THREE.BufferGeometry();
 
-  const material = new THREE.MeshLambertMaterial({
-    map: texture,
-    side: THREE.DoubleSide,
-    alphaTest: 0.1,
-    transparent: true,
+
+  // // START old material
+  // const material = new THREE.MeshLambertMaterial({
+  //   map: texture,
+  //   side: THREE.DoubleSide,
+  //   alphaTest: 0.1,
+  //   transparent: true,
+  // });
+  // // END old material
+
+
+  var uniforms = {
+    "color": { value: new THREE.Color(0xff0000) },
+    //"texture": { type: "t", value: texture },
+  };
+
+  const material = new THREE.ShaderMaterial({
+    side: THREE.DoubleSide, // TODO
+    uniforms: uniforms,
+    vertexShader:   vertexShader,
+    fragmentShader: fragmentShader,
   });
 
   const positionNumComponents = 3;
@@ -291,11 +357,15 @@ export function addBoat(scene, Render) {
   geometry.setAttribute(
     'normal',
     new THREE.BufferAttribute(new Float32Array(normals), normalNumComponents));
+
+  geometry.setAttribute(
+    'voxelValues',
+    new THREE.BufferAttribute(new Float32Array(voxelValues), 1));
+
   geometry.setAttribute(
     'uv',
     new THREE.BufferAttribute(new Float32Array(uvs), uvNumComponents));
   geometry.setIndex(indices);
-
 
   var boatMesh = new THREE.Mesh(geometry, material);
 

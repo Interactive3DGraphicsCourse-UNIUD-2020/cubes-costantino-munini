@@ -69,6 +69,7 @@ export class VoxelWorld {
        const {cellSize, tileSize, tileTextureWidth, tileTextureHeight} = this;
        const positions = [];
        const normals = [];
+       const voxelValues = [];
        const uvs = [];
        const indices = [];
        const startX = cellX * cellSize;
@@ -97,6 +98,7 @@ export class VoxelWorld {
                    for (const {pos, uv} of corners) {
                      positions.push(pos[0] + x, pos[1] + y, pos[2] + z);
                      normals.push(...dir);
+                     voxelValues.push(uvVoxel);
                      uvs.push(
                            (uvVoxel +   uv[0]) * tileSize / tileTextureWidth,
                        1 - (uvRow + 1 - uv[1]) * tileSize / tileTextureHeight);
@@ -115,8 +117,10 @@ export class VoxelWorld {
        return {
          positions,
          normals,
+         voxelValues,
          uvs,
-         indices};
+         indices
+       };
     }
 
   }
