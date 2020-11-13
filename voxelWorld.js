@@ -8,7 +8,7 @@ export class VoxelWorld {
       this.tileTextureWidth = options.tileTextureWidth;
       this.tileTextureHeight = options.tileTextureHeight;
 
-      const {cellSize} = this; // why needed?
+      const {cellSize} = this;
 
       this.cellSliceSize = cellSize * cellSize;
       this.cells = {};
@@ -19,7 +19,7 @@ export class VoxelWorld {
       const cellX = Math.floor(x / cellSize);
       const cellY = Math.floor(y / cellSize);
       const cellZ = Math.floor(z / cellSize);
-      return `${cellX},${cellY},${cellZ}`; // create string
+      return `${cellX},${cellY},${cellZ}`;
     }
 
     computeVoxelOffset(x, y, z) {

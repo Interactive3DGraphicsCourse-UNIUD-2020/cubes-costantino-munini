@@ -3,13 +3,17 @@ import { VoxelWorld } from './voxelWorld.js';
 
 const seaVertexShader =
 `
-    attribute float displacement;
-    varying vec3 vNormal;
 	  varying vec2 vUv;
 
+    attribute float waveGroup;
+    uniform float amplitude;
+    uniform float speed;
+    uniform float time;
+
     void main() {
-        vNormal = normal;
 				vUv = uv;
+
+        float displacement = amplitude * sin(speed * (waveGroup + time));
 
         vec3 upVec = vec3(0,1,0);
         vec3 newPosition = position + upVec * vec3( displacement );
@@ -20,19 +24,10 @@ const seaVertexShader =
 
 const seaFragmentShader =
 `
-    varying vec3 vNormal;
-    uniform vec3 color;
-
     uniform sampler2D texture;
 		varying vec2 vUv;
 
     void main() {
-        //vec3 light = vec3( 0.5, 0.2, 1.0 );
-        //light = normalize( light );
-        //float dProd = dot( vNormal, light ) * 0.5 + 0.5;
-
-        //gl_FragColor = vec4( vec3( dProd ) * vec3( color ), 1.0 );
-
         gl_FragColor = texture2D( texture, vUv );
     }
 `
@@ -40,10 +35,7 @@ const seaFragmentShader =
 
 let loader, texture;
 
-let seaDim, seaMesh;
-let displacement;
-
-
+let seaWidth, seaLength, seaMesh;
 
 export function addSea(scene, Render) {
 
@@ -53,7 +45,8 @@ export function addSea(scene, Render) {
     texture.magFilter = THREE.NearestFilter;
     texture.minFilter = THREE.NearestFilter;
 
-    const cellSize = 64;
+    //const cellSize = 64;
+    const cellSize = 300;
 
     const tileSize = 16;
     const tileTextureWidth = 256;
@@ -67,19 +60,21 @@ export function addSea(scene, Render) {
     });
 
     var seaTextureNum = 4;
-    seaDim = cellSize - 1;
-    //seaDim = 4;
+
+    seaWidth  = Math.floor((cellSize - 1) / 2);
+    seaLength = cellSize - 1;
+
+    var seaDeepness = 1;
     var seaOffsetX = cellSize;
     var seaOffsetZ = cellSize;
 
-    //for (let y = 0; y < 3; ++y) { // TODO mare profondo?
-    for (let x = 0; x < seaDim; ++x) {
-        for (let z = 0; z < seaDim; ++z) {
-
-            world.setVoxel(x + seaOffsetX, 0, z + seaOffsetZ, seaTextureNum);
+    for (let y = 0; y < seaDeepness; ++y) {
+      for (let x = 0; x < seaWidth; ++x) {
+        for (let z = 0; z < seaLength; ++z) {
+          world.setVoxel(x + seaOffsetX, y, z + seaOffsetZ, seaTextureNum);
         }
+      }
     }
-    //}
 
     // CREATE MESH FOR SEA
     const { positions, normals, uvs, indices } = world.generateGeometryDataForCell(1, 0, 1, { full: true });
@@ -87,11 +82,11 @@ export function addSea(scene, Render) {
     var seaGeometry = new THREE.BufferGeometry();
 
 
-
-
     var seaUniforms = {
-        "color": { value: new THREE.Color(0x006994) },
-        //"texture": { type: "t", value: texture },
+        "time": { value: 0.0 },
+        "amplitude": { value: 0.4 },
+        "speed"    : { value: 0.4 },
+        "texture": { type: "t", value: texture },
     };
 
     const seaMaterial = new THREE.ShaderMaterial({
@@ -116,13 +111,21 @@ export function addSea(scene, Render) {
         new THREE.BufferAttribute(new Float32Array(uvs), uvNumComponents));
     seaGeometry.setIndex(indices);
 
-    displacement = new Float32Array(seaGeometry.attributes.position.count);
-    seaGeometry.setAttribute('displacement', new THREE.BufferAttribute(displacement, 1));
+    var group = 0;
+    var groupNum = 4 * 6 * seaWidth; // full = true // 4 vertici per faccia per 6 facce per righe del mare
+    var waveGroups = new Float32Array(seaGeometry.attributes.position.count);
+    for (let i = 1; i <= waveGroups.length; i++) { // TODO start from 0 or 1??
+      waveGroups[i-1] = group;
+      if (i % groupNum == 0) {
+        group++;
+      }
+    }
+    seaGeometry.setAttribute('waveGroup', new THREE.BufferAttribute(waveGroups, 1));
+
 
     seaMesh = new THREE.Mesh(seaGeometry, seaMaterial);
-    seaMesh.position.x = - seaDim / 4;
-    //seaMesh.position.x = - 63 / 4;
-    //seaMesh.position.y = - 3;
+    seaMesh.position.x = - seaWidth / 2 + 15;
+    seaMesh.position.y = -seaDeepness + 1;
 
     scene.add(seaMesh);
 
@@ -130,28 +133,5 @@ export function addSea(scene, Render) {
 
 
 export function updateSea(time) {
-  var group = 0;
-  var groupNum = 4 * 6 * seaDim; // full = true // 4 vertici per faccia per 6 facce per righe del mare
-
-  //var faceVertexesNum = 4;
-
-  var amplitude = 0.3;
-  var speed = 0.5;
-
-  for (let i = 1; i <= displacement.length; i++) {
-    displacement[i] = amplitude * Math.sin(speed * (group + time));
-
-    if (i % groupNum == 0) {
-      group++;
-    }
-
-    //displacement[i - 1] = amplitude * Math.sin(speed * (group + time));
-    //if (i == ((seaDim - 2) * 3 * faceVertexesNum + faceVertexesNum * 4 * 2)) {
-    //  group++;
-    //} else if (0 ==  i % ((seaDim - 2) * 2 * faceVertexesNum + 2 * 3 * faceVertexesNum)) {
-    //  group++;
-    //}
-  }
-
-  seaMesh.geometry.attributes.displacement.needsUpdate = true;
+  seaMesh.material.uniforms.time.value = time % 360;
 }
