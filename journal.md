@@ -34,3 +34,4 @@
 * Migliorato movimento telecamera
 * Creato README
 * Pulizia codice
+* Colore onde

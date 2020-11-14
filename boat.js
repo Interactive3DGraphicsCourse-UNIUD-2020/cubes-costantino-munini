@@ -3,44 +3,12 @@ import { VoxelWorld } from './voxelWorld.js'
 // VERTEX SHADER //
 const vertexShader =
 `
-  varying vec3 vNormal;
-  varying vec3 vColor;
   varying vec2 vUv;
-
-  varying vec3 vPosition;
-
   attribute float voxelValues;
-
-  vec3 toColor(float vVal) { // TODO
-    vec3 col = vec3(0);
-
-    if (vVal == 1.0) {
-      col = vec3( 85,  53,  37);
-
-    } else if (vVal == 2.0) {
-      col = vec3(166, 171, 181);
-
-    } else if (vVal == 4.0) {
-      col = vec3(151, 131, 92);
-
-    } else if (vVal == 5.0) {
-      col = vec3( 58, 43, 19);
-
-    } else {
-      col = vec3(179, 183, 193);
-    }
-
-    return normalize(col);
-  }
 
   void main() {
     vUv = uv;
-
-    vColor = toColor(voxelValues);
-
-    vec4 vPos = modelViewMatrix * vec4( position, 1.0 );
-    vPosition = vPos.xyz;
-    vNormal = normalMatrix * normal;
+    vec4 vPos = modelViewMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * vPos;
   }
 `
@@ -48,52 +16,11 @@ const vertexShader =
 // FRAGMENT SHADER //
 const fragmentShader =
 `
-  varying vec3 vNormal;
-  varying vec3 vColor;
-  varying vec3 vPosition;
-
-  uniform vec3 color;
-
   uniform sampler2D texture;
   varying vec2 vUv;
 
   void main() {
-    // // Decomment for no texture
-    gl_FragColor = texture2D( texture, vUv );
-
-    // // Uncomment for no texture
-    // gl_FragColor = vec4(pow( normalize(vColor), vec3(1.0/2.2)), 1.0); // gamma enc
-
-
-    //// Test con luce
-    ////vec3 light = vec3( 0.5, 0.2, 1.0 );
-    ////vec3 light = vec3( 1.0, 1.0, 1.0 );
-    ////vec3 light = vec3( 0.2, 0.2, 0.2 );
-    //vec3 light = vec3( 0.5, 0.5, 0.5 );
-
-    //light = normalize( light );
-    //float dProd = dot( vNormal, light ) * 0.5 + 0.5;
-
-    //vec3 notEnc = vec3( dProd ) * vec3( vColor );
-    //gl_FragColor = vec4(pow( notEnc, vec3(1.0/2.2)), 1.0); // gamma enc
-
-    // // Lambert
-    // // variables
-    // vec3 pointLightPosition = vec3(100, 300, 0);
-    // vec3 clight = vec3( 0.5, 0.5, 0.5 ) ;
-    // //vec3 cdiff  = vec3(1.0, 1.0, 1.0) ;
-    // vec3 cdiff  = vColor;
-
-    // // code
-    // vec4 lPosition = viewMatrix * vec4( pointLightPosition, 1.0 );
-    // vec3 l = normalize(lPosition.xyz - vPosition.xyz);
-    // vec3 n = normalize( vNormal );  // interpolation destroys normalization, so we have to normalize
-    // float nDotl = max(dot( n, l ),0.0);
-    // // formula would be:
-    // // outRadiance = clight * PI * cdiff/PI * nDotl, the two PI cancel out
-    // vec3 outRadiance = clight * nDotl * cdiff;
-    // // gamma encode the final value
-    // gl_FragColor = vec4(pow( outRadiance, vec3(1.0/2.2)), 1.0);
+    gl_FragColor = texture2D(texture, vUv);
   }
 `
 
@@ -283,7 +210,6 @@ export function addBoat(Render) {
     }
   }
 
-
   // TREE (albero maestro)
   let treeHeight = 26;
   let treeBaseLength = 2;
@@ -336,25 +262,15 @@ export function addBoat(Render) {
   }
 
   // Generate boat mesh
-  const { positions, normals, voxelValues, uvs, indices } = world.generateGeometryDataForCell(0, 0, 0);
+  const { positions, normals, uvs, indices } = world.generateGeometryDataForCell(0, 0, 0);
   const geometry = new THREE.BufferGeometry();
 
-  // // START old material
-  // const material = new THREE.MeshLambertMaterial({
-  //   map: texture,
-  //   side: THREE.DoubleSide,
-  //   alphaTest: 0.1,
-  //   transparent: true,
-  // });
-  // // END old material
-
   var uniforms = {
-    "color": { value: new THREE.Color(0xff0000) },
-    //"texture": { type: "t", value: texture },
+    "texture": { type: "t", value: texture }
   };
 
   const material = new THREE.ShaderMaterial({
-    side: THREE.DoubleSide, // TODO
+    side: THREE.DoubleSide,
     uniforms: uniforms,
     vertexShader: vertexShader,
     fragmentShader: fragmentShader,
@@ -369,11 +285,6 @@ export function addBoat(Render) {
   geometry.setAttribute(
     'normal',
     new THREE.BufferAttribute(new Float32Array(normals), normalNumComponents));
-
-  geometry.setAttribute(
-    'voxelValues',
-    new THREE.BufferAttribute(new Float32Array(voxelValues), 1));
-
   geometry.setAttribute(
     'uv',
     new THREE.BufferAttribute(new Float32Array(uvs), uvNumComponents));
@@ -443,27 +354,19 @@ function generateOar() {
     );
   }
 
-  const { positions, normals, voxelValues, uvs, indices, } = world.generateGeometryDataForCell(1, 0, 0);
+  const { positions, normals, uvs, indices, } = world.generateGeometryDataForCell(1, 0, 0);
   const geometry = new THREE.BufferGeometry();
 
-  const material = new THREE.MeshLambertMaterial({
-    map: texture,
+  var uniforms = {
+    "texture": { type: "t", value: texture }
+  };
+
+  const material = new THREE.ShaderMaterial({
     side: THREE.DoubleSide,
-    alphaTest: 0.1,
-    transparent: true,
+    uniforms: uniforms,
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
   });
-
-  //var uniforms = {
-  //  "color": { value: new THREE.Color(0xff0000) },
-  //  //"texture": { type: "t", value: texture },
-  //};
-
-  //const material = new THREE.ShaderMaterial({
-  //  side: THREE.DoubleSide, // TODO
-  //  uniforms: uniforms,
-  //  vertexShader:   vertexShader,
-  //  fragmentShader: fragmentShader,
-  //});
 
   const positionNumComponents = 3;
   const normalNumComponents = 3;
@@ -474,16 +377,10 @@ function generateOar() {
   geometry.setAttribute(
     'normal',
     new THREE.BufferAttribute(new Float32Array(normals), normalNumComponents));
-
-  //geometry.setAttribute(
-  //  'voxelValues',
-  //  new THREE.BufferAttribute(new Float32Array(voxelValues), 1));
-
   geometry.setAttribute(
     'uv',
     new THREE.BufferAttribute(new Float32Array(uvs), uvNumComponents));
   geometry.setIndex(indices);
-
 
   var mesh = new THREE.Mesh(geometry, material);
 

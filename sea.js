@@ -8,16 +8,18 @@ const seaVertexShader =
   uniform float amplitude;
   uniform float speed;
   uniform float time;
+  varying float vDisplacement;
 
   void main() {
     vUv = uv;
 
     float displacement = amplitude * sin(speed * (waveGroup + time));
+    vDisplacement = max(0.0, sin(speed * (waveGroup + time))) * 0.15;
 
-    vec3 upVec = vec3(0,1,0);
-    vec3 newPosition = position + upVec * vec3( displacement );
+    vec3 upVec = vec3(0.0, 1.0, 0.0);
+    vec3 newPosition = position + upVec * vec3(displacement);
 
-    gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
   }
 `
 
@@ -25,9 +27,10 @@ const seaFragmentShader =
 `
   uniform sampler2D texture;
   varying vec2 vUv;
+  varying float vDisplacement;
 
   void main() {
-    gl_FragColor = texture2D( texture, vUv );
+    gl_FragColor = texture2D(texture, vUv) + vec4(vec3(vDisplacement), 0.0);
   }
 `
 
@@ -75,7 +78,6 @@ export function addSea(scene, Render) {
 
   // Creat mesh of sea
   const { positions, normals, uvs, indices } = world.generateGeometryDataForCell(1, 0, 1, { full: true });
-  //const { positions, normals, uvs, indices } = world.generateGeometryDataForCell(1, 0, 1);
   var seaGeometry = new THREE.BufferGeometry();
 
   var seaUniforms = {
@@ -86,9 +88,9 @@ export function addSea(scene, Render) {
   };
 
   const seaMaterial = new THREE.ShaderMaterial({
-    side: THREE.DoubleSide, // TODO
+    side: THREE.DoubleSide,
     uniforms: seaUniforms,
-    transparent: true, // TODO
+    transparent: true,
     vertexShader: seaVertexShader,
     fragmentShader: seaFragmentShader,
   });
@@ -110,7 +112,7 @@ export function addSea(scene, Render) {
   var group = 0;
   var groupNum = 4 * 6 * seaWidth; // full = true // 4 vertici per faccia per 6 facce per righe del mare
   var waveGroups = new Float32Array(seaGeometry.attributes.position.count);
-  for (let i = 1; i <= waveGroups.length; i++) { // TODO start from 0 or 1??
+  for (let i = 1; i <= waveGroups.length; i++) {
     waveGroups[i-1] = group;
     if (i % groupNum == 0) {
       group++;
