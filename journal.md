@@ -26,3 +26,11 @@
 * Aggiunto decoro barca (spuntoni)
 * Esperimenti con le texture
 * Progetto modularizzato da file unico in *index.html*, *boat.js*, *sea.js*, *voxelWorld.js*
+
+
+## Day 4
+* Aggiunto movimento barca
+* Ottimizzato mare
+* Migliorato movimento telecamera
+* Creato README
+* Pulizia codice
