@@ -1,110 +1,107 @@
 import { VoxelWorld } from './voxelWorld.js'
 
+// VERTEX SHADER //
 const vertexShader =
 `
-    varying vec3 vNormal;
-    varying vec3 vColor;
-	  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vColor;
+  varying vec2 vUv;
 
-		varying vec3 vPosition;
+  varying vec3 vPosition;
 
-    attribute float voxelValues;
+  attribute float voxelValues;
 
+  vec3 toColor(float vVal) { // TODO
+    vec3 col = vec3(0);
 
-    vec3 toColor(float vVal) { // TODO
-      vec3 col = vec3(0);
+    if (vVal == 1.0) {
+      col = vec3( 85,  53,  37);
 
-      if (vVal == 1.0) {
-        col = vec3( 85,  53,  37);
+    } else if (vVal == 2.0) {
+      col = vec3(166, 171, 181);
 
-      } else if (vVal == 2.0) {
-        col = vec3(166, 171, 181);
+    } else if (vVal == 4.0) {
+      col = vec3(151, 131, 92);
 
-      } else if (vVal == 4.0) {
-        col = vec3(151, 131, 92);
+    } else if (vVal == 5.0) {
+      col = vec3( 58, 43, 19);
 
-      } else if (vVal == 5.0) {
-        col = vec3( 58, 43, 19);
-
-      } else {
-        col = vec3(179, 183, 193);
-      }
-
-      return normalize(col);
+    } else {
+      col = vec3(179, 183, 193);
     }
 
-    void main() {
-				vUv = uv;
+    return normalize(col);
+  }
 
-        vColor = toColor(voxelValues);
+  void main() {
+    vUv = uv;
 
-			  vec4 vPos = modelViewMatrix * vec4( position, 1.0 );
-			  vPosition = vPos.xyz;
-			  vNormal = normalMatrix * normal;
-			  gl_Position = projectionMatrix * vPos;
-    }
+    vColor = toColor(voxelValues);
+
+    vec4 vPos = modelViewMatrix * vec4( position, 1.0 );
+    vPosition = vPos.xyz;
+    vNormal = normalMatrix * normal;
+    gl_Position = projectionMatrix * vPos;
+  }
 `
 
+// FRAGMENT SHADER //
 const fragmentShader =
 `
-    varying vec3 vNormal;
-    varying vec3 vColor;
-		varying vec3 vPosition;
+  varying vec3 vNormal;
+  varying vec3 vColor;
+  varying vec3 vPosition;
 
-    uniform vec3 color;
+  uniform vec3 color;
 
-    uniform sampler2D texture;
-		varying vec2 vUv;
+  uniform sampler2D texture;
+  varying vec2 vUv;
 
-    void main() {
-        // // Decomment for no texture
-        gl_FragColor = texture2D( texture, vUv );
+  void main() {
+    // // Decomment for no texture
+    gl_FragColor = texture2D( texture, vUv );
 
-        // // Uncomment for no texture
-				// gl_FragColor = vec4(pow( normalize(vColor), vec3(1.0/2.2)), 1.0); // gamma enc
+    // // Uncomment for no texture
+    // gl_FragColor = vec4(pow( normalize(vColor), vec3(1.0/2.2)), 1.0); // gamma enc
 
 
-        //// Test con luce
-        ////vec3 light = vec3( 0.5, 0.2, 1.0 );
-        ////vec3 light = vec3( 1.0, 1.0, 1.0 );
-        ////vec3 light = vec3( 0.2, 0.2, 0.2 );
-        //vec3 light = vec3( 0.5, 0.5, 0.5 );
+    //// Test con luce
+    ////vec3 light = vec3( 0.5, 0.2, 1.0 );
+    ////vec3 light = vec3( 1.0, 1.0, 1.0 );
+    ////vec3 light = vec3( 0.2, 0.2, 0.2 );
+    //vec3 light = vec3( 0.5, 0.5, 0.5 );
 
-        //light = normalize( light );
-        //float dProd = dot( vNormal, light ) * 0.5 + 0.5;
+    //light = normalize( light );
+    //float dProd = dot( vNormal, light ) * 0.5 + 0.5;
 
-        //vec3 notEnc = vec3( dProd ) * vec3( vColor );
-        //gl_FragColor = vec4(pow( notEnc, vec3(1.0/2.2)), 1.0); // gamma enc
+    //vec3 notEnc = vec3( dProd ) * vec3( vColor );
+    //gl_FragColor = vec4(pow( notEnc, vec3(1.0/2.2)), 1.0); // gamma enc
 
-        // // Lambert
-        // // variables
-        // vec3 pointLightPosition = vec3(100, 300, 0);
-			  // vec3 clight = vec3( 0.5, 0.5, 0.5 ) ;
-			  // //vec3 cdiff  = vec3(1.0, 1.0, 1.0) ;
-			  // vec3 cdiff  = vColor;
+    // // Lambert
+    // // variables
+    // vec3 pointLightPosition = vec3(100, 300, 0);
+    // vec3 clight = vec3( 0.5, 0.5, 0.5 ) ;
+    // //vec3 cdiff  = vec3(1.0, 1.0, 1.0) ;
+    // vec3 cdiff  = vColor;
 
-        // // code
-				// vec4 lPosition = viewMatrix * vec4( pointLightPosition, 1.0 );
-				// vec3 l = normalize(lPosition.xyz - vPosition.xyz);
-				// vec3 n = normalize( vNormal );  // interpolation destroys normalization, so we have to normalize
-				// float nDotl = max(dot( n, l ),0.0);
-				// // formula would be:
-				// // outRadiance = clight * PI * cdiff/PI * nDotl, the two PI cancel out
-				// vec3 outRadiance = clight * nDotl * cdiff;
-				// // gamma encode the final value
-				// gl_FragColor = vec4(pow( outRadiance, vec3(1.0/2.2)), 1.0);
-    }
+    // // code
+    // vec4 lPosition = viewMatrix * vec4( pointLightPosition, 1.0 );
+    // vec3 l = normalize(lPosition.xyz - vPosition.xyz);
+    // vec3 n = normalize( vNormal );  // interpolation destroys normalization, so we have to normalize
+    // float nDotl = max(dot( n, l ),0.0);
+    // // formula would be:
+    // // outRadiance = clight * PI * cdiff/PI * nDotl, the two PI cancel out
+    // vec3 outRadiance = clight * nDotl * cdiff;
+    // // gamma encode the final value
+    // gl_FragColor = vec4(pow( outRadiance, vec3(1.0/2.2)), 1.0);
+  }
 `
 
-
 let world, cellSize;
-
 let loader, texture;
+var boatMesh;
 
-//our texture nums
-//
-
-
+// Our texture nums
 const boatTexture = 2;  // 553525 ( 85,  53,  37)
 const oarsTexture = 5;  // 97835c (151, 131,  92)
 
@@ -114,14 +111,13 @@ const ramBodyTexture  = 5; // 97835c (151, 131,  92)
 const ramHeadTexture  = 6; // 3a2b13 ( 58,  43,  19)
 const ramHornsTexture = 7; //  b3b7c1 (179, 183, 193)
 
-export function addBoat(scene, Render) {
-
-  // TEXTURE LOADING
+// Funzione principale di creazione della mesh della barca
+export function addBoat(Render) {
+  // Texture loading
   loader = new THREE.TextureLoader();
   texture = loader.load('textures/our_textures.png', Render);
   texture.magFilter = THREE.NearestFilter;
   texture.minFilter = THREE.NearestFilter;
-
 
   cellSize = 64;
 
@@ -228,7 +224,6 @@ export function addBoat(scene, Render) {
     for (let y = 0; y < sternHeights[z]; ++y) {
       for (let x = 0; x < sternWidths[y]; ++x) {
         world.setVoxel(x + offsetX + sternOffsetX[y], y + sternOffsetY, z + sternOffsetZ, boatTexture);
-        // console.log("coor: ", x + offsetX + sternOffsetX[y], y + sternOffsetY, z + sternOffsetZ);
       }
     }
     sternOffsetY -= 1;
@@ -295,7 +290,7 @@ export function addBoat(scene, Render) {
   let treeBaseWidth = 3;
 
   let treeOffsetX = Math.floor(boatWidths[3] / 2) + bodyOffsetX;
-  let treeOffsetY = boatHeight; // + bodyOffsetU;
+  let treeOffsetY = boatHeight;
   let treeOffsetZ = Math.floor(boatLength / 2) + bodyOffsetZ;
 
   for (let y = 0; y < treeHeight; ++y) {
@@ -340,40 +335,9 @@ export function addBoat(scene, Render) {
     }
   }
 
-
-
-
-
-  // OARS (remi)
-  var oar = generateOar();
-
-  var oarsOffsetX = 14;
-  var oarsOffsetY = 2;
-  var oarsOffsetZ = 15 + 8;
-
-  for (let z = 0; z < 5; z++) {
-    var oar_clone = oar.clone();
-    oar_clone.position.x = oarsOffsetX + boatWidths[2] - 2;
-    oar_clone.position.y = oarsOffsetY;
-    oar_clone.position.z = z * 5 + oarsOffsetZ;
-    oar_clone.name = `oar_left_${z}`;
-    scene.add(oar_clone);
-
-    oar_clone = oar.clone();
-    oar_clone.position.x = oarsOffsetX;
-    oar_clone.position.y = oarsOffsetY;
-    oar_clone.position.z = z * 5 + oarsOffsetZ;
-    oar_clone.rotation.y = 180 * Math.PI / 180;
-    oar_clone.name = `oar_right_${z}`;
-    scene.add(oar_clone);
-  }
-
-
-
-  // GENERATE BOAT MESH
-  const { positions, normals, voxelValues, uvs, indices, } = world.generateGeometryDataForCell(0, 0, 0);
+  // Generate boat mesh
+  const { positions, normals, voxelValues, uvs, indices } = world.generateGeometryDataForCell(0, 0, 0);
   const geometry = new THREE.BufferGeometry();
-
 
   // // START old material
   // const material = new THREE.MeshLambertMaterial({
@@ -384,7 +348,6 @@ export function addBoat(scene, Render) {
   // });
   // // END old material
 
-
   var uniforms = {
     "color": { value: new THREE.Color(0xff0000) },
     //"texture": { type: "t", value: texture },
@@ -393,7 +356,7 @@ export function addBoat(scene, Render) {
   const material = new THREE.ShaderMaterial({
     side: THREE.DoubleSide, // TODO
     uniforms: uniforms,
-    vertexShader:   vertexShader,
+    vertexShader: vertexShader,
     fragmentShader: fragmentShader,
   });
 
@@ -416,12 +379,36 @@ export function addBoat(scene, Render) {
     new THREE.BufferAttribute(new Float32Array(uvs), uvNumComponents));
   geometry.setIndex(indices);
 
-  var boatMesh = new THREE.Mesh(geometry, material);
+  boatMesh = new THREE.Mesh(geometry, material);
 
-  scene.add(boatMesh);
+  // OARS (remi)
+  var oar = generateOar();
+
+  var oarsOffsetX = 14;
+  var oarsOffsetY = 2;
+  var oarsOffsetZ = 15 + 8;
+
+  for (let z = 0; z < 5; z++) {
+    var oar_clone = oar.clone();
+    oar_clone.position.x = oarsOffsetX + boatWidths[2] - 2;
+    oar_clone.position.y = oarsOffsetY;
+    oar_clone.position.z = z * 5 + oarsOffsetZ;
+    oar_clone.name = `oar_left_${z}`;
+    boatMesh.add(oar_clone);
+
+    oar_clone = oar.clone();
+    oar_clone.position.x = oarsOffsetX;
+    oar_clone.position.y = oarsOffsetY;
+    oar_clone.position.z = z * 5 + oarsOffsetZ;
+    oar_clone.rotation.y = 180 * Math.PI / 180;
+    oar_clone.name = `oar_right_${z}`;
+    boatMesh.add(oar_clone);
+  }
+
+  return boatMesh;
 }
 
-
+// Funzione per animare la barca
 export function updateBoat(scene, time) {
   for (let z = 0; z < 5; z++) {
     var oar = scene.getObjectByName(`oar_left_${z}`);
@@ -433,10 +420,11 @@ export function updateBoat(scene, time) {
     oar.rotation.y = Math.PI;
     oar.rotation.y -= 0.3 * Math.cos(0.5 * time);
   }
+
+  boatMesh.position.z += 0.05;
 }
 
-
-
+// Funzione per la creazione di un remo
 function generateOar() {
   var oar = new THREE.Object3D();
 
