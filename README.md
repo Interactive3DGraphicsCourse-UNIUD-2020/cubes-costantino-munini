@@ -1,6 +1,6 @@
 # Voxel boat
 
-![Animazione barca](.gif)
+![Animazione barca](VoxelBoat.gif)
 
 ## Idea e obiettivi
 Creare un'animazione di una barca a remi su mare entrambi in movimento.
