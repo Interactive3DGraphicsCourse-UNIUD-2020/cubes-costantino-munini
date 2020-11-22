@@ -1,0 +1,93 @@
+<html>
+	<head>
+		<title>Voxel Boat!</title>
+		<style>
+		
+		body {
+			font-family: Monospace;
+			background-color: #f0f0f0;
+			margin: 0px;
+			overflow: hidden;
+		}
+		
+		canvas { 
+			width: 100%; 
+			height: 100%;
+		}
+	
+	</style>
+		<script src="lib/three.min.js"></script>
+		<script src="lib/stats.min.js"></script>
+		<script src="lib/Coordinates.js"></script>
+		<script src="lib/OrbitControls.js"></script>
+	</head>
+	<body>		
+		<script type="module">
+			import {VoxelWorld} from './voxelWorld.js';
+			import {addBoat, updateBoat} from './boat.js';
+			import {addSea, updateSea} from './sea.js';
+			
+			var scene, camera, renderer, controls, stats;
+			var world, cellSize;
+			var cameraPivot;
+			
+			function Start() {
+				scene = new THREE.Scene();
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+				renderer = new THREE.WebGLRenderer( {antialias: true} );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setClearColor( 0xf0f0f0 );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.gammaInput = true;
+				renderer.gammaOutput = true;
+				renderer.shadowMap.enabled = true;
+				document.body.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				document.body.appendChild( stats.domElement );
+				
+				var boatMesh = addBoat(Render);
+				scene.add(boatMesh);
+				addSea(scene);
+
+				camera.position.set(30, 20, 30);
+				camera.lookAt( new THREE.Vector3(0,0,0));
+
+				cameraPivot = new THREE.Object3D();
+				cameraPivot.add(camera);
+				boatMesh.add(cameraPivot);
+
+				// Circa tree position
+				cameraPivot.position.x = 13;
+				cameraPivot.position.y = 4;
+				cameraPivot.position.z = 20;
+			}
+
+
+			function Update() {
+				const time = Date.now() * 0.005;
+
+				updateBoat(scene, time);
+				updateSea(time);
+
+				cameraPivot.rotation.y += 0.005;
+				camera.position.y = 20 +  10 * Math.sin( 0.05 * time );
+
+				requestAnimationFrame( Update );
+
+				stats.update();
+				Render();
+			}
+			
+			function Render() {
+				renderer.render(scene, camera);
+			}
+			
+			Start();
+			Update();
+		</script>
+	</body>
+</html>
